@@ -15,3 +15,7 @@ venv
 __pycache__
 
 .ipynb_checkpoints
+
+vendor
+.bundle
+.sass-cache
