@@ -162,7 +162,7 @@ An algorithm is parallelizable if $$\frac{W}{S} > 1$$. Can we compute sum in les
 The problem with the previous kernel is that it was not step efficient. It takes $$O(N)$$ steps to sum over the array. Using a binary tree reduction, we can sum the array in $$\log N$$ steps. Note that we still do $$N-1$$ adds and $$N$$ reads. Therefore this approach remains work efficient.
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/tree_sum.png" alt="alt text" style="width: 75%;">
+    <img src="/images/posts/reducesum/tree_sum.png" alt="alt text" style="width: 100%;">
 </div>
 
 <br/>
@@ -199,7 +199,7 @@ __syncthreads();
 ```
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/2_divergent.png" alt="alt text" style="width: 65%;">
+    <img src="/images/posts/reducesum/2_divergent.png" alt="alt text" style="width: 100%;">
 </div>
 
 <br/>
@@ -271,7 +271,7 @@ if (index < blockDim.x) {
 ```
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/3_nondivergent.png" alt="alt text" style="width: 75%;">
+    <img src="/images/posts/reducesum/3_nondivergent.png" alt="alt text" style="width: 100%;">
 </div>
 <br/>
 
@@ -287,12 +287,10 @@ $$
 \end{align}
 $$
 
-If different threads access different banks in parallel, shared memory can serve all those requests with no penalty. However, if two threads access indices from the same bank at the same time, the memory controller serializes these requests. These are called bank conflicts.
+If different threads access different banks in parallel, shared memory can serve all those requests with no penalty. However, if two threads access indices from the same bank at the same time, the memory controller serializes these requests. These are called bank conflicts. Below is an example of a two-way bank conflict when different threads wrap around the same bank index: `buffer[threadIdx.x * 2]`
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/two_way_conflict.png" alt="alt text" style="width: 80%;">
-  <br/>
-  <b>Fig:</b> A two-way bank conflict when banks are accessed as <code>buffer[threadIdx.x * 2]</code>.
+    <img src="/images/posts/reducesum/two_way_conflict.png" alt="alt text" style="width: 100%;">
 </div>
 
 <br/>
@@ -309,7 +307,7 @@ In summary, when different threads start accessing addresses that wrap around th
 There is one neat trick up CUDA's sleeves. It is not a bank conflict if the same thread accesses multiple addresses within the same bank. Looking at the conflict example, we want `tid=0` to access `index=[0,32]`, `tid=1` to access `index=[1,33]` and so on. To do so, we invert the stride calculation.
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/4_sequential.png" alt="alt text" style="width: 75%;">
+    <img src="/images/posts/reducesum/4_sequential.png" alt="alt text" style="width: 100%;">
 </div>
 <br/>
 
