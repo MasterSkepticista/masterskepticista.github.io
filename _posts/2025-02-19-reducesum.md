@@ -16,7 +16,7 @@ This post will walk through a series of optimizations to iteratively obtain maxi
 
 Code is available on [GitHub](https://github.com/MasterSkepticista/parallel_reductions_cuda).
 
-<div style="width: 70%; margin: auto; align: left">
+<div style="margin: auto; width: auto">
   <table style="font-size: 0.9em;">
     <thead>
       <tr>
