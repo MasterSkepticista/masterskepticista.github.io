@@ -1,6 +1,5 @@
+--- 
 ---
----
-
 /*
  *    Minimal Mistakes Jekyll Theme
  *
@@ -40,33 +39,28 @@
 @import "vendor/magnific-popup/magnific-popup";
 @import "print";
 
+// @charset "UTF-8";
+
 @font-face {
-  font-family: 'CMU Serif Roman';
-  font-style: normal;
+  font-family: "et-book";
+  src: url("../fonts/et-book-roman-line-figures.eot");
+  src: url("../fonts/et-book-roman-line-figures.eot?#iefix") format("embedded-opentype"), url("../fonts/et-book-roman-line-figures.woff") format("woff"), url("../fonts/et-book-roman-line-figures.ttf") format("truetype"), url("../fonts/et-book-roman-line-figures.svg#etbookromanosf") format("svg");
   font-weight: normal;
-  src: local('CMU Serif Roman'), url('../fonts/cmunrm.woff') format('woff');
+  font-style: normal
 }
 
-
 @font-face {
-  font-family: 'CMU Serif Italic';
-  font-style: normal;
+  font-family: "et-book";
+  src: url("../fonts/et-book-display-italic-old-style-figures.eot");
+  src: url("../fonts/et-book-display-italic-old-style-figures.eot?#iefix") format("embedded-opentype"), url("../fonts/et-book-display-italic-old-style-figures.woff") format("woff"), url("../fonts/et-book-display-italic-old-style-figures.ttf") format("truetype"), url("../fonts/et-book-display-italic-old-style-figures.svg#etbookromanosf") format("svg");
   font-weight: normal;
-  src: local('CMU Serif Italic'), url('../fonts/cmunti.woff') format('woff');
+  font-style: italic
 }
 
-
 @font-face {
-  font-family: 'CMU Serif Bold';
-  font-style: normal;
-  font-weight: normal;
-  src: local('CMU Serif Bold'), url('../fonts/cmunbx.woff') format('woff');
-}
-
-
-@font-face {
-  font-family: 'CMU Serif BoldItalic';
-  font-style: normal;
-  font-weight: normal;
-  src: local('CMU Serif BoldItalic'), url('../fonts/cmunbi.woff') format('woff');
+  font-family: "et-book";
+  src: url("../fonts/et-book-bold-line-figures.eot");
+  src: url("../fonts/et-book-bold-line-figures.eot?#iefix") format("embedded-opentype"), url("../fonts/et-book-bold-line-figures.woff") format("woff"), url("../fonts/et-book-bold-line-figures.ttf") format("truetype"), url("../fonts/et-book-bold-line-figures.svg#etbookromanosf") format("svg");
+  font-weight: bold;
+  font-style: normal
 }
