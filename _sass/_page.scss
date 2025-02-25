@@ -18,8 +18,8 @@
 
 .page {
   @include breakpoint($large) {
-    @include span(10 of 12);
-    @include prefix(0);
+    @include span(8 of 12);
+    @include prefix(0.5);
     @include suffix(0);
   }
 
@@ -56,7 +56,7 @@
   }
 
   p, li, dl {
-    font-size: 1.1em;
+    font-size: 1em;
   }
 
   /* paragraph indents */
@@ -385,7 +385,8 @@
   float: left;
 
   @include breakpoint($large) {
-    @include pre(2.5 of 12);
+    @include span(8 of 12);
+    @include prefix(0.5);
   }
 
   a {

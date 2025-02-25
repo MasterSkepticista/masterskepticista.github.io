@@ -1,12 +1,14 @@
 ---
-title: 'Embarrasingly Parallel Reduction in CUDA'
+title: 'Embarrassingly Parallel Reduction in CUDA'
 date: 2025-02-19
 permalink: /posts/2025/02/reducesum/
-excerpt: "Until the GPU runs out of juice."
+excerpt: "A step-by-step guide on turning simple math into a flex."
 tags:
     - cs
 toc: true
 ---
+
+> When life gives you arrays, reduce them. Aggresively.
 
 Reduce operations are common in HPC applications. Put simply, a reduce operation combines all elements of an array into a single value through either `sum`, `min`, `max`, `product`, etc.
 
@@ -73,7 +75,7 @@ Code is available on [GitHub](https://github.com/MasterSkepticista/parallel_redu
   </table>
 </div>
 
-### Roofline
+### _Roofline_
 
 Our bench problem is to compute the sum of elements of a vector with $$N = 2^{25}$$ floats. A reduce operation reads each element of the array at least once. And because this is a `sum` operation, it will also do a total of $$N-1$$ adds. First, we will lower-bound our runtime based on peak compute and memory throughput values of an RTX-3090[^ampere-datasheet]:
 * $$N$$ `float32` reads at 936 GB/s = 0.136 ms
@@ -83,7 +85,7 @@ As we can see, reduction operations have very low arithmetic intensity, they are
 
 The theoretical minimum time for this operation is 0.136 + 0.0036 = 0.1396 ms. Since CUDA does not provide a built-in `reduce_sum` primitive, we will use `jax.numpy.sum` as a reference. `jnp.sum` completes in 0.15 ms, achieving **871 GB/s** effective bandwidth.
 
-### Complexity Analysis
+### _Complexity Analysis_
 
 [Brent's theorem](https://stanford.edu/~rezab/dao/notes/lecture01/cme323_lec1.pdf) is how we compare efficiency across different parallel algorithms. For a parallel algorithm, we can calculate:
 * $$W$$: work, the total number of operations if run serially.
@@ -106,7 +108,7 @@ We can derive a couple of interesting bounds which will be helpful later:
 
 For the `reduce_sum` operation, work complexity $$W = N_{reads} + (N-1)_{adds}$$ is $$O(N)$$. 
 
-### Baseline
+### _Baseline_
 
 Jensen would hate me for using GPUs to sum $$N$$ elements using atomic operations. But this "serial" operation serves as a baseline for all parallelism we will achieve later.
 
@@ -162,7 +164,7 @@ An algorithm is parallelizable if $$\frac{W}{S} > 1$$. Can we compute sum in les
 The problem with the previous kernel is that it was not step efficient. It takes $$O(N)$$ steps to sum over the array. Using a binary tree reduction, we can sum the array in $$\log N$$ steps. Note that we still do $$N-1$$ adds and $$N$$ reads. Therefore this approach remains work efficient.
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/tree_sum.png" alt="alt text" style="width: 100%;">
+    <img src="/images/posts/reducesum/tree_sum.png" alt="alt text" style="width: auto;">
 </div>
 
 <br/>
@@ -170,7 +172,7 @@ The problem with the previous kernel is that it was not step efficient. It takes
 In CUDA, threads are grouped as "blocks". We will divide the array into blocks of certain size, which is a tunable parameter. Each block will sum its elements in parallel, and then the partial sums will be accumulated using atomics. For simplicity, I will depict the reduction process for a `block_size` of 8.
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/blocks.png" alt="alt text" style="width: 100%;">
+    <img src="/images/posts/reducesum/blocks.png" alt="alt text" style="width: auto;">
 </div>
 
 <br/>
@@ -199,7 +201,7 @@ __syncthreads();
 ```
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/2_divergent.png" alt="alt text" style="width: 100%;">
+    <img src="/images/posts/reducesum/2_divergent.png" alt="alt text" style="width: auto;">
 </div>
 
 <br/>
@@ -271,14 +273,14 @@ if (index < blockDim.x) {
 ```
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/3_nondivergent.png" alt="alt text" style="width: 100%;">
+    <img src="/images/posts/reducesum/3_nondivergent.png" alt="alt text" style="width: auto;">
 </div>
 <br/>
 
 With this change, our kernel achieves **317 GB/s** effective bandwidth, a **42%** improvement over the previous kernel.
 
 ---
-### Bank Conflicts[^bank-conflicts]
+### _Bank Conflicts[^bank-conflicts]_
 On CUDA devices, shared memory is divided into groups of `32` banks, assuming each index holds `4`-byte wide memory (called a `word`). Bank ID relates to the index of memory being accessed as follows:
 
 $$
@@ -290,7 +292,7 @@ $$
 If different threads access different banks in parallel, shared memory can serve all those requests with no penalty. However, if two threads access indices from the same bank at the same time, the memory controller serializes these requests. These are called bank conflicts. Below is an example of a two-way bank conflict when different threads wrap around the same bank index: `buffer[threadIdx.x * 2]`
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/two_way_conflict.png" alt="alt text" style="width: 100%;">
+    <img src="/images/posts/reducesum/two_way_conflict.png" alt="alt text" style="width: auto;">
 </div>
 
 <br/>
@@ -307,7 +309,7 @@ In summary, when different threads start accessing addresses that wrap around th
 There is one neat trick up CUDA's sleeves. It is not a bank conflict if the same thread accesses multiple addresses within the same bank. Looking at the conflict example, we want `tid=0` to access `index=[0,32]`, `tid=1` to access `index=[1,33]` and so on. To do so, we invert the stride calculation.
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/4_sequential.png" alt="alt text" style="width: 100%;">
+    <img src="/images/posts/reducesum/4_sequential.png" alt="alt text" style="width: auto;">
 </div>
 <br/>
 
@@ -333,7 +335,7 @@ buffer[tid] = arr[idx] + arr[idx + blockDim.x];
 ```
 
 <div style="text-align: center;">
-    <img src="/images/posts/reducesum/5_noidle_threads.png" alt="alt text" style="width: 100%;">
+    <img src="/images/posts/reducesum/5_noidle_threads.png" alt="alt text" style="width: auto;">
 </div>
 <br/>
 

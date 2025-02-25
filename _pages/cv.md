@@ -14,7 +14,7 @@ redirect_from:
   [Capstone Project: Interpretability for Structural MRI Segmentation Models](https://drive.google.com/file/d/181hEFHXJx7T_yeMJ6m2h1QTKCPB-LX23/view?usp=sharing).
 
 ## Awards
-* Division Recognition Award (2021, 2022), Intel.
+* Division Recognition Award (2021, 2022, 2025), Intel.
 * Technologist of the Year (2022, 2023), Vertical Solutions Group, Intel.
 
 ## Extended CV
