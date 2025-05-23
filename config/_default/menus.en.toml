@@ -22,9 +22,13 @@
 #   weight = 20
 
 [[main]]
-  name = "Tags"
-  pageRef = "tags"
+  name = "GitHub"
+  url = "https://github.com/masterskepticista"
   weight = 30
+  [main.params]
+    icon = "github"
+    showName = false
+    target = "_blank"
 
 [[main]]
   identifier = "search"
@@ -42,7 +46,7 @@
 # The footer menu is displayed at the bottom of the page, just before
 # the copyright notice. Configure as per the main menu above.
 
-# [[footer]]
-#   name = "Tags"
-#   pageRef = "tags"
-#   weight = 10
+[[footer]]
+  name = "Tags"
+  pageRef = "tags"
+  weight = 10
