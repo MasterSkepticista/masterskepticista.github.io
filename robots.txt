@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://masterskepticista.github.io/sitemap.xml
