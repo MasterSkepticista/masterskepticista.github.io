@@ -16,10 +16,10 @@
   weight = 10
 
 
-# [[main]]
-#   name = "Code"
-#   pageRef = "code"
-#   weight = 20
+[[main]]
+  name = "Code"
+  pageRef = "code"
+  weight = 20
 
 [[main]]
   name = "GitHub"
