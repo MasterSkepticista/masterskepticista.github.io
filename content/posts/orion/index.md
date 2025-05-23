@@ -66,7 +66,7 @@ At this point we can extrapolate to our "ideal" cluster: it would train a ResNet
 Training across nodes requires taking a global average of gradients across all GPUs on each backward pass. So each GPU would have to send and receive a full set of `gradient_size` data at each step.
 
 $$
-\text{gradient_size} = \frac{#\text{params}}{1e^6} \times \text{bytes_per_param}
+  \text{gradient\\_size} = \frac{\text{params\\_size}}{1e^6} \times \text{bytes\\_per\\_param}
 $$
 
 For a ResNet50 with 25M parameters, `gradient_size` is roughly 100MB per step, per GPU. Since each GPU needs a full copy of globally averaged gradients - a naive algorithm would require the lead host to `fetch` and `broadcast` 100MB data to/from each GPU. This would create a massive bottleneck on the main host, since the communication time would grow linearly on the number of GPUs.
@@ -74,7 +74,7 @@ For a ResNet50 with 25M parameters, `gradient_size` is roughly 100MB per step, p
 Lucky for us, most implementations[^nccl] of collectives today use the `RingAllReduce` algorithm, which amortizes the amount of transfers as number of GPUs increase, by communicating 'chunked' gradients. In other words: data communicated per GPU reaches an asymptotic limit, independent of the number of GPUs in the cluster.
 
 $$
-\text{data_per_gpu} = 2 (N - 1) \frac{\text{gradient_size}}{N}
+\text{data\\_per\\_gpu} = 2 (N - 1) \frac{\text{gradient\\_size}}{N} = \frac{3}{2} \times 100 \text{ MB}
 $$
 
 If you are interested in the proof, Gibiansky has a great article explaining the [`RingAllReduce`](https://andrew.gibiansky.com/blog/machine-learning/baidu-allreduce/) algorithm.
@@ -86,7 +86,7 @@ In complex topologies spanning thousands of GPUs, a [`HierarchicalAllReduce`](ht
 On our 4-node cluster with 10GbE bi-directional links, time spent in communication would be
 
 $$
-T_c = \frac{\text{bytes}}{\text{bandwidth}} = \frac{150}{1.25 \times 1024} = 0.11 \text{s.}
+T_c = \frac{\text{data\\_per\\_gpu}}{\text{bandwidth}} = \frac{150}{1.25 \times 1024} = 0.11 \text{s.}
 $$
 
 So we would pay a fixed cost of 110ms each time, to synchronize gradients.
@@ -155,7 +155,7 @@ optimizer.aggregate_gradients = compressed_aggregate_gradients
 Our scaling efficiency with halved communication time is:
 
 $$
-\eta = \frac{T_s}{T_s + 0.5 \times T_c} = \frac{234}{234 + 53} \approx 81.5\%
+\eta = \frac{T_s}{T_s + 0.5 \times T_c} = \frac{234}{234 + 53} \approx 81.5\\%
 $$
 
 {{< figure
@@ -223,12 +223,12 @@ def accumulate_gradient(value_and_grad_fn,
     return value_and_grad_fn(params, batch)
 ```
 
-In theory, you could go all-in with many accumulation steps, such that the communication time as a fraction of total step time tends to zero - giving you an \\(\eta \approx 99\%\\).
+In theory, you could go all-in with many accumulation steps, such that the communication time as a fraction of total step time tends to zero - giving you an \\(\eta \approx 99\\%\\).
 
 In our case, we used 2 accumulation steps to match the 4096 batch-size in [BiT: BigTransfer](https://arxiv.org/abs/1912.11370) paper. Plugging values back into our equation:
 
 $$
-  \frac{2 \times T_s}{2 \times T_s + 0.5 \times T_c} = \frac{468}{468 + 53} \approx 89.8\%
+  \frac{2 \times T_s}{2 \times T_s + 0.5 \times T_c} = \frac{468}{468 + 53} \approx 89.8\\%
 $$
 
 {{< figure
@@ -237,7 +237,7 @@ $$
     caption="Gradient accumulation results"
 >}}
 
-Ouch, we were SO close to hit our \\(90\%\\) goal!
+Ouch, we were SO close to hit our \\(90\\%\\) goal!
 
 ## 3. Faster Communication
 
@@ -253,7 +253,7 @@ NCCL_SOCKET_NTHREADS=1      # May be different on your setup.
 With communication speed doubled, we crunch the numbers again:
 
 $$
-\eta = \frac{2 \times T_s}{2 \times T_s + 0.25 \times T_c} = \frac{468}{468 + 27} \approx 94.5\%
+\eta = \frac{2 \times T_s}{2 \times T_s + 0.25 \times T_c} = \frac{468}{468 + 27} \approx 94.5\\%
 $$
 
 {{< figure
