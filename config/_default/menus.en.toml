@@ -22,13 +22,9 @@
   weight = 20
 
 [[main]]
-  name = "GitHub"
-  url = "https://github.com/masterskepticista"
+  name = "Talks"
+  pageRef = "talks"
   weight = 30
-  [main.params]
-    icon = "github"
-    showName = false
-    target = "_blank"
 
 [[main]]
   identifier = "search"
@@ -50,3 +46,7 @@
   name = "Tags"
   pageRef = "tags"
   weight = 10
+
+[[footer]]
+  name = "CV"
+  url = "https://drive.google.com/file/d/1blFQIqhagkHfd3sqsjawCyPCvl0Evrtw/view"
