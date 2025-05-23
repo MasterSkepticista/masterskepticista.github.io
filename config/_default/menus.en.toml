@@ -27,6 +27,11 @@
   weight = 30
 
 [[main]]
+  name = "Papers"
+  pageRef = "papers"
+  weight = 40
+
+[[main]]
   identifier = "search"
   weight = 99
   [main.params]
