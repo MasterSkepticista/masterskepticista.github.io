@@ -40,12 +40,12 @@ To improve 'something', we must 'measure' that something. Our bench this time is
 
 With these changes, it took 3 days (2.1 steps/s) to train a 300-epoch baseline on our cluster. I will skip the napkin math, but this is already faster than authors' numbers when normalized for per GPU FLOP throughput - notably from use of the new flash attention kernel that Ampere GPUs support.
 
-> N.B.: I did try `torch.compile` with different options on sub-parts of the model/training step, it either ended up giving the same throughput, or failed to compile. So 'it is what it is'.
+{{< alert "circle-info" >}}
+I tried `torch.compile` with various options on sub-parts of the model/training step. It either ended up giving the same throughput, or failed to compile. So 'it is what it is'.
+{{< /alert >}}
 
 ## Refactor
 I decided to implement DETR in JAX. You can think of JAX as a front-end language to write [XLA](https://openxla.org/xla) optimized programs. XLA is an open-source Machine Learning compiler that optimizes Linear Algebra operations. XLA generally outperforms the superset of all PyTorch optimizations _when done right, by a good margin_. One downside of working with XLA/JAX is that it is harder to debug `jit` compiled programs. PyTorch, on the other hand, dispatches CUDA kernels eagerly (except when wrapped with `torch.compile`), which makes it easiest to debug and work with. But when you consider the cost of few compile minutes over how long production training runs like these typically are, it is worth the tradeoff.
-
-> JAX is improving rapidly. I would change my opinion on it being _slower_ rather than _harder_ to debug, as compared to PyTorch.
 
 Luckily a dusty [re-implementation](https://github.com/google-research/scenic/tree/main/scenic/projects/baselines/detr) of DETR in JAX made for a good head-start. But it did not work out-of-the-box due to deprecated JAX and Flax APIs. To get the ball rolling, I made a minimal set of [changes](https://github.com/google-research/scenic/pull/1062), without any optimizations.
 
@@ -62,7 +62,10 @@ Now, the optimizations.
 ### 1. Disable Matching for padded objects
 ---
 This is actually a bug-fix rather than an optimization. COCO dataset does not guarantee a fixed number of objects for each image. This means the bipartite matcher would have to map a fixed set of object queries (say 100) to a randomly varying number of target objects for each image, triggering an expensive retrace of the graph.
-> N.B.: XLA compiler can generate optimized graphs in part because memory allocation/deallocation is predictable, and constant-folding/fusion of operators is simpler when the entire computational graph layout is static. This is the price you pay for performance. You can read more [here](https://www.tensorflow.org/guide/function).
+
+{{< alert "circle-info" >}}
+XLA compiler can generate optimized graphs in part because memory allocation/deallocation is predictable, and constant-folding/fusion of operators is simpler when the entire computational graph layout is static. This is the price you pay for performance. You can read more [here](https://www.tensorflow.org/guide/function).
+{{< /alert >}}
 
 To prevent retracing, we add 'padding' objects and a boolean mask that allows us to filter dummy objects when computing loss.
 
@@ -98,8 +101,6 @@ With this bug-fix, we are now 40% faster, i.e. \\(1.4\\) steps/s. It now takes 4
 
 {{< figure
     src="/posts/detr/disable_padded.png"
-    alt="Disable Matching for padded objects"
-    caption="Disable Matching for padded objects"
 >}}
 
 ### 2. Mixed Precision MatMuls

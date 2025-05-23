@@ -23,19 +23,6 @@ Classification is a common deep learning task. Even foundation LLMs are trained 
 
 Neural networks (NNs) are efficient at extracting representations from data by augmenting it into certain size of representations. Dimensionality of the representations that NNs extract from natural data depends on what is expected of them. For example, sentiment classification models may require a smaller data manifold, than say, summarizing it, if both models are trained from scratch until convergence.
 
-```python
-import optax
-import flax.linen as nn
-import numpy as np
-import jax, jax.numpy as jnp
-from sklearn import datasets
-
-import plotly.express as px
-import plotly.graph_objects as go
-
-rng = jax.random.PRNGKey(42)
-```
-
 ## A Number Line
 What better place to start an article like this with 1D space? Consider a simple binary classification problem. We have two classes, `0` and `1`, represented by three blobs on a number line. The inner blue blob is class `1`, and the outer red blobs are class `0`.
 
@@ -100,6 +87,7 @@ def fit(brain: nn.Module, params, x: jnp.ndarray, y: jnp.ndarray):
   return params
 ```
 
+### Classification in 1D
 To match the 1D world of a number line, we will initialize our model with one dimension. The decision boundary of this neuron will be a point on the number line.
 
 ```python
@@ -113,10 +101,9 @@ Observe how the activation manifold evolves over time. Since we cannot go anywhe
 
 {{< figure
     src="/posts/dimensionality/manifold_1d.gif"
-    alt="1D Manifold Evolution"
-    caption="1D Manifold Evolution"
 >}}
 
+### Adding a virtual dimension
 But what if we could think in 2D? Ah, then the problem becomes trivial - we achieve 100% accuracy. Activation space is now a 2D plane, and the decision boundary is a line. Notice how blue cluster is stretched out orthogonally to the red blobs.
 
 {{< figure
@@ -125,7 +112,7 @@ But what if we could think in 2D? Ah, then the problem becomes trivial - we achi
     caption="1D to 2D Manifold"
 >}}
 
-## Classification in 2D
+## Concentric Circles
 Let's redo this exercise, but starting in 2D space. Consider a binary classification problem where the inner blue blob is class `1`, and the red ring is class `0`.
 
 ```python
@@ -141,6 +128,7 @@ fig.show()
     caption="2D Circles"
 >}}
 
+### Classification in 2D
 To match the 2D world, we will initialize our model with two dimensions. Visualizing the activation manifold of this 2D model shows the learnt decision boundary. Since activation manifold is 2D, our decision boundary will be a line.
 
 ```python
@@ -159,7 +147,7 @@ This behavior is similar to the case above where 1D line was expanded to 2D. The
 
 But we don't achieve 100% accuracy on this problem. No line segment can partition these two clusters in 2D space. The outer ring fully covers the inner one. It is mathematically impossible to do so, without using additional dimensions of space. The fact that despite topological limitations, this 2D model crossed \\(\sim\\) 85% on this dataset tells us how far even a 2D model can twist the data manifold for classification.
 
-## Adding the third-dimension
+### Adding a virtual dimension
 
 Let's see what happens when our model is given one extra dimension than the data manifold resides in. Our activation manifold will now be 3D.
 
@@ -170,7 +158,12 @@ params = brain.init(rng_init, jnp.zeros_like(x))["params"]
 params = fit(brain, params, x, y)
 ```
 
-
+<iframe 
+  src="/manifold_3d.html" 
+  width="100%" 
+  height="480"
+  frameborder="0"
+></iframe>
 
 The decision boundary is now a plane, which can separate the two classes with \\(\sim\\) 100% accuracy. This is because the model now stretches the center cluster out across z-axis, and slices a plane orthogonal to it.
 
