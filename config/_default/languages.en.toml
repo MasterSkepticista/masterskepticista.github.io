@@ -1,0 +1,27 @@
+languageCode = "en"
+languageName = "English"
+languageDirection = "ltr"
+weight = 1
+
+title = "Home"
+copyright = "Copyright © 2025 Karan Shah. If you copy this, may your WiFi become unstable."
+
+[params]
+  dateFormat = "2 January 2006"
+
+  mainSections = ["posts", "code"]
+  description = "My personal blog"
+
+[params.author]
+  name = "Karan Shah"
+  image = "img/profile.png"
+  headline = "Sampling meaning from a non-stationary prior."
+  bio = "Sampling meaning from a non-stationary prior."
+  links = [
+    { link = "https://masterskepticista.github.io/" },
+    { github = "https://github.com/MasterSkepticista" },
+    { google-scholar = "https://scholar.google.com/citations?user=vEgcRTkAAAAJ&hl=en" },
+    { linkedin = "https://linkedin.com/in/karan-bhavesh-shah" },
+    { stack-overflow = "https://stackoverflow.com/users/9230398/karan-shah" },
+    { x-twitter = "https://twitter.com/elevated_quark" },
+  ]
