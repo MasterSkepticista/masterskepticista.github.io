@@ -26,10 +26,10 @@
   pageRef = "talks"
   weight = 30
 
-[[main]]
-  name = "Papers"
-  pageRef = "papers"
-  weight = 40
+# [[main]]
+#   name = "Papers"
+#   pageRef = "papers"
+#   weight = 40
 
 [[main]]
   identifier = "search"

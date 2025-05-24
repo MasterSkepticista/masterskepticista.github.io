@@ -39,15 +39,15 @@ fingerprintAlgorithm = "sha256"
 [article]
   showDate = true
   showDateUpdated = false
-  showAuthor = true
-  showBreadcrumbs = false
+  showAuthor = false
+  showBreadcrumbs = true
   showDraftLabel = true
   showEdit = false
   # editURL = "https://github.com/username/repo/"
   editAppendPath = true
   showHeadingAnchors = true
   showPagination = true
-  invertPagination = false
+  invertPagination = true
   showReadingTime = true
   showTableOfContents = true
   showTaxonomies = false
@@ -60,7 +60,7 @@ fingerprintAlgorithm = "sha256"
   showSummary = false
   showTableOfContents = false
   showTaxonomies = false
-  groupByYear = true
+  groupByYear = false
   paginationWidth = 1
 
 [sitemap]

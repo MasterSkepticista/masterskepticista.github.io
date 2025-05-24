@@ -1,0 +1,15 @@
+h1.text-4xl {
+    font-weight: 500 !important; /* Adjust the size as needed */
+}
+
+h2.text-2xl {
+    font-weight: 500 !important; /* Adjust the size as needed */
+}
+
+h2 {
+    font-weight: 500 !important;
+}
+
+.max-w-prose {
+    max-width: 80ch !important;
+}
