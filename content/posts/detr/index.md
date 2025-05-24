@@ -60,7 +60,7 @@ This implementation takes 6.5 days to replicate the PyTorch baseline, at nearly 
 Now, the optimizations.
 
 ### 1. Disable Matching for padded objects
----
+
 This is actually a bug-fix rather than an optimization. COCO dataset does not guarantee a fixed number of objects for each image. This means the bipartite matcher would have to map a fixed set of object queries (say 100) to a randomly varying number of target objects for each image, triggering an expensive retrace of the graph.
 
 {{< alert "circle-info" >}}
@@ -203,7 +203,10 @@ else:
       deterministic=not train,
       capture_attention_weights=False)
 ```
-> Note: As of writing SDPA API does not support attention dropout. This is because JAX and cuDNN use different PRNG implementations. Once `dropout` makes its way to SDPA API, we can set flash attention to be our default.
+
+{{< alert "circle-info" >}}
+As of writing, [`jax.nn.dot_product_attention`](https://github.com/google/jax/pull/21371) does not support attention dropout. This is because JAX and cuDNN use different PRNG implementations. Speedup outweighs the regularization benefits of dropout, so we will live with it for now.
+{{< /alert >}}
 
 For now, let us be content with the _potential_ speedup. We are now at \\(3.0\\) steps/s, **33% faster** than PyTorch, taking 2 days to train.
 
