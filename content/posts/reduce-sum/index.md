@@ -10,7 +10,7 @@ Reduce operations are common in HPC applications. Put simply, a reduce operation
 
 Reduce operations are embarrasingly parallel[^associativity], which makes them a great candidate to be run on GPUs.
 
-This post will walk through a series of optimizations to iteratively obtain maximum device throughput. 
+This post will walk through a series of optimizations[^nvidia-guide] to iteratively obtain maximum device throughput. 
 
 Code is available on [GitHub](https://github.com/MasterSkepticista/parallel_reductions_cuda).
 
@@ -371,10 +371,11 @@ __device__ void warpReduce(volatile float *buffer, int tid) {
 }
 ```
 
-We are now at **859 GB/s** effective bandwidth, within ~1% of `jax.numpy.sum`.
+We are now at **859 GB/s** effective bandwidth, within ~2% of `jax.numpy.sum`.
 
 Who doesn't like speed?
 
 [^associativity]: Associativity [`(a + b) + c = a + (b + c)`] is a trait of highly parallel algorithms: since grouping of operations does not affect the result, algorithms can compute partial results independently.
 [^ampere-datasheet]: [NVIDIA Ampere Architecture Datasheet](https://www.nvidia.com/content/PDF/nvidia-ampere-ga-102-gpu-architecture-whitepaper-v2.1.pdf)
 [^bank-conflicts]: [This](https://github.com/Kobzol/hardware-effects-gpu/tree/master/bank-conflicts) repo on demonstrating hardware effects on GPU is useful.
+[^nvidia-guide]: [Optimizing Parallel Reduction in CUDA, M Harris](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf)
