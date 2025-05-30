@@ -1,5 +1,5 @@
 ---
-title: "Talks"
+title: "slides"
 
 cascade:
   showEdit: false

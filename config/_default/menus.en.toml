@@ -11,18 +11,18 @@
 # ordered by weight from lowest to highest.
 
 [[main]]
-  name = "Blog"
+  name = "blog"
   pageRef = "posts"
   weight = 10
 
 
 [[main]]
-  name = "Code"
+  name = "code"
   pageRef = "code"
   weight = 20
 
 [[main]]
-  name = "Talks"
+  name = "slides"
   pageRef = "talks"
   weight = 30
 
@@ -48,10 +48,10 @@
 # the copyright notice. Configure as per the main menu above.
 
 [[footer]]
-  name = "Tags"
+  name = "tags"
   pageRef = "tags"
   weight = 10
 
 [[footer]]
-  name = "CV"
+  name = "cv"
   url = "https://drive.google.com/file/d/1blFQIqhagkHfd3sqsjawCyPCvl0Evrtw/view"
