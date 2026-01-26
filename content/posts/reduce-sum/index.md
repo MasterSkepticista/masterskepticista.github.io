@@ -75,7 +75,7 @@ Code is available on [GitHub](https://github.com/MasterSkepticista/parallel_redu
 
 ## Roofline Model
 
-We first calculate the ridge point \\( \gamma \\) of our RTX3090 GPU[^ampere-datasheet] (i.e., minimum floating point operations that must be carried out on each byte of data, before memory bandwidth becomes a bottleneck) as the ratio between compute and memory bandwidth. Note that in practice, ridge point is higher than this number because of cache effects, possible branching, and instruction overhead.
+We first calculate the ridge point \\( \gamma \\) of our RTX3090 GPU[^ampere-datasheet] (i.e., minimum floating point operations that must be carried out on each byte of data, to hit peak FLOP/s a machine is capable of) as the ratio between compute and memory bandwidth. Note that in practice, ridge point is higher than this number because of cache effects, possible branching, and instruction overhead.
 
 $$
 \gamma = \frac{\text{compute BW}}{\text{memory BW}} = \frac{35600}{936} = 38 \text{ FLOPs/byte}
