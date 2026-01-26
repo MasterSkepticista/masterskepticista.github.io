@@ -73,13 +73,23 @@ Code is available on [GitHub](https://github.com/MasterSkepticista/parallel_redu
 
 {{< katex >}}
 
-## Roofline
+## Roofline Model
 
-Our bench problem is to compute the sum of elements of a vector with \\( N = 2^{25} \\) floats. A reduce operation reads each element of the array at least once. And because this is a `sum` operation, it will also do a total of \\(N-1\\) adds. First, we will lower-bound our runtime based on peak compute and memory throughput values of an RTX-3090[^ampere-datasheet]:
-* \\(N\\) `float32` reads at 936 GB/s = 0.136 ms
-* \\(N-1\\) `float32` adds at 35.6 TFLOPS = 0.0036 ms
+We first calculate the ridge point \\( \gamma \\) of our RTX3090 GPU[^ampere-datasheet] (i.e., minimum floating point operations that must be carried out on each byte of data, before memory bandwidth becomes a bottleneck) as the ratio between compute and memory bandwidth. Note that in practice, ridge point is higher than this number because of cache effects, possible branching, and instruction overhead.
 
-As we can see, reduction operations have very low arithmetic intensity, they are memory-bound.
+$$
+\gamma = \frac{\text{compute BW}}{\text{memory BW}} = \frac{35600}{936} = 38 \text{ FLOPs/byte}
+$$
+
+Our bench problem is to compute the sum of elements of a vector with `N` single precision floats. A reduce operation reads each element of the array at least once; about \\(4\cdot N\\) bytes transferred, while performing \\(N-1 \approx N\\) adds (or multiply/min/max depending on the type of reduction). Arithmetic intensity, \\( \alpha \\), is defined as:
+
+$$
+\alpha = \frac{\text{ops}}{\text{byte}} = \frac{N-1}{4 \cdot N} \approx 0.25 \text{ FLOPs/byte}
+$$
+
+Arithmetic intensity \\(\alpha \lt\lt \gamma\\): it is severely memory bound. We can estimate the runtime based on peak compute and memory throughput values:
+* \\(N\\) single precision reads at 936 GB/s = 0.136 ms
+* \\(N\\) single precision adds at 35.6 TFLOPS = 0.0036 ms
 
 The theoretical minimum time for this operation is 0.136 + 0.0036 = 0.1396 ms. Since CUDA does not provide a built-in `reduce_sum` primitive, we will use `jax.numpy.sum` as a reference. `jnp.sum` completes in 0.15 ms, achieving **871 GB/s** effective bandwidth.
 
