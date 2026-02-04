@@ -6,6 +6,10 @@ draft: true
 tags: ["sgemm", "avx512", "matmul"]
 ---
 
+{{< alert "circle-info" >}}
+Work-in-progress. Code available [here](https://github.com/masterskepticista/sgemm.c).
+{{< /alert >}}
+
 {{< figure
     src="/posts/sgemm/pointwise.png"
     alt="Pointwise GEMM Operation"
