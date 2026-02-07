@@ -1,7 +1,7 @@
 ---
 title: Optimizing a GEMM from first principles
 date: 2025-07-14
-summary: Within 92% of Intel MKL.
+summary: Within 92% of Intel MKL (single-threaded).
 draft: true
 tags: ["sgemm", "avx512", "matmul"]
 ---
@@ -10,13 +10,9 @@ tags: ["sgemm", "avx512", "matmul"]
 Work-in-progress. Code available [here](https://github.com/masterskepticista/sgemm.c).
 {{< /alert >}}
 
-{{< figure
-    src="/posts/sgemm/pointwise.png"
-    alt="Pointwise GEMM Operation"
->}}
 {{<katex>}}
 
-This is a worklog on optimizing a single-precision generalized matrix-multiply (GEMM) kernel in C to land close to Intel MKL-CBLAS performance. 
+This is a worklog on optimizing a single-precision generalized matrix-multiply (GEMM) kernel in C to land close to Intel MKL performance. In the process of learning this for myself, I found the following sources really helpful. Building on the following, this article aims to approach the design decisions of GEMM at the level of a chip ISA. 
 
 * [Algorithmica: Matrix Multiplication](https://en.algorithmica.org/hpc/algorithms/matmul/)
 * [Advanced Matrix Multiplication on Multi-Core Processors](https://salykova.github.io/gemm-cpu)
@@ -25,6 +21,11 @@ This is a worklog on optimizing a single-precision generalized matrix-multiply (
 ## Introduction
 
 Let us start by describing the pointwise operation:
+
+{{< figure
+    src="/posts/sgemm/pointwise.png"
+    alt="Pointwise GEMM Operation"
+>}}
 
 ```c
 void gemm_naive(float *C, 
@@ -45,19 +46,19 @@ void gemm_naive(float *C,
 }
 ```
 
-It takes ~1.2 seconds for this kernel to multiply two 1000-size square matrices. This is absurdly slow for a CPU of this day and age. Before we start optimizing it, we need to take stock of where we are and what the prize is.
+It takes ~1.2 seconds for this kernel to multiply two 1000-size square matrices. This is absurdly slow for a CPU of this day and age. The Intel-MKL library, in comparison, finishes this operation in 13ms, about 100x faster. Before we start optimizing this naive kernel, lets take stock of how to reason about the performance of a kernel.
 
 ## Roofline Analysis
 
 System specs:
 * Intel Xeon [Sapphire Rapids] 8488C @ 2.5GHz, 2 vCPUs
   * Cache L1d: 48 KB/core | L2: 2 MB/core | L3: 105 MB/shared
-  * ISA support: AVX | AVX-2 | AVX-512
+  * ISA support: AVX-2 | AVX-512
   * Microarchitecture: Golden Cove[^glc]
 * 4GB Memory, 10GB/s STREAM bandwidth (measured using `mbw`)
 * Ubuntu 24.04 LTS
 
-Performance of Generalized Matrix Multiply (GEMM) 'kernels' will be measured in FLOP/s (floating point operations per second); common choice in many ML/HPC workloads. How many operations? GEMM involves `K` dot products to furnish each element of result matrix `C`.
+We will measure the performance of Generalized Matrix Multiply (GEMM) kernels in GFLOP/s (giga floating point operations per second). How many operations? GEMM involves `K` dot products across each row and column of `A` and `B` respectively to furnish each element of result matrix `C`.
 
 $$
 A^{M \times K} \times B^{K \times N} = 2 \cdot M \cdot N \cdot (K - 1) \approx 2 \cdot MNK
@@ -85,14 +86,12 @@ $$
 \gamma = \frac{\text{compute BW}}{\text{memory BW}} = 8 \text{ FLOPs/byte }
 $$
 
-In practice, the ridge point depends on cache reuse, branching, and other instruction overheads. For instance, if we manage to keep the entire working set of a GEMM operation within cache boundary (which we will see soon with a cache-blocked GEMM kernel), the arithmetic intensity necessary to saturate compute units is quite lower. Here is a hierarchical roofline model across the entire memory hierarchy and the corresponding ridge points.
-
 {{< figure
     src="/posts/sgemm/hierarchy_roofline.png"
     alt="Memory Hierarchy Roofline Model"
 >}}
 
-The focus of this worklog is on single-threaded operations only.
+In practice, the ridge point depends on cache reuse, branching, and other instruction overheads. For instance, if we manage to keep the entire working set of a GEMM operation within cache boundary (which we will see soon with a cache-blocked GEMM kernel), the arithmetic intensity necessary to saturate compute units is quite lower. Here is a roofline model of the entire memory hierarchy and the corresponding ridge points. The focus of this worklog is on single-threaded operations only.
 
 ## Memory Layout
 As mentioned earlier, our arrays store floats in a row-major order, i.e., elements of a row are laid out consecutively. CPUs fetch contiguous blocks of memory (called a cache line) in the hope that consecutive memory elements will be needed for further processing. If a computation does not utilize all items in a cache line optimally, CPU cycles are wasted.
@@ -351,7 +350,7 @@ for m in MR:
     store(c[m][n], C[m][n])
 ```
 
-### Optimal Tile Sizes
+### Optimal Tile Size
 When using `YMM` vector registers, we have a limit of 16. The scalars we load from \\(B\\) of size \\(\text{NR}\\) must be a multiple of 8 to fit in one register. Hence \\(B\\) vector will use \\(\text{NR}/8\\) registers. Each scalar from \\(A\\) uses 1 register: the scalar is broadcasted to the entire vector. The \\(C\\) accumulator fully resides in registers, requiring \\(\text{MR} \times \text{NR}/8\\) registers. Therefore, we need to satisfy the inequality:
 
 $$ \text{MR} \cdot \frac{\text{NR}}{8} + \frac{\text{NR}}{8} + 1 \leq 16 $$
@@ -371,6 +370,11 @@ $$
 \hline
 \end{array}
 $$
+
+
+Only the \\(6 \times 16\\) and \\(14 \times 8\\) size micro-kernels are capable of saturating the core within L3 boundary (recall from the roofline plot, \\(2.16 \text{ FLOPs/byte}\\)), so we can discard other candidates. Of the two that remain, \\(14 \times 8\\) tile actually ends up being load bound. The [disassembly](https://godbolt.org/z/YMoEExxv8) shows a memory broadcast on every FMA; compilers tend to generate memory-source FMAs instead of separating the load and broadcast into registers. As a result, even though the total number of bytes accessed is similar, each scalar requires its own load op during the FMA. This leads to roughly 15 load instructions per iteration (14 scalar loads plus one 256-bit vector load).
+
+By contrast, the \\(6 \times 16\\) micro-kernel performs six scalar loads and two 256-bit vector loads, for a total of eight loads. This produces a much better balance between load throughput and FMA issue rate, allowing the kernel to approach core saturation. This explains the popular choice of \\(6 \times 16\\) in various BLAS libraries using AVX intrinsics.
 
 
 [^sse]: Streaming SIMD Extensions debuted with Pentium-III.
