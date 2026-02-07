@@ -73,27 +73,26 @@ $$
 
 This means that as matrix sizes grow, GEMM operation becomes compute-bound. In fact, if we know the compute and memory bandwidth of a machine, we can find the machine's 'ridge point'. Any kernel that uses less FLOPs/byte from the ridge point is said to be *memory-bound*, and vice versa.
 
-Our CPU has two FMA (fused multiply-add) units that can operate on 256/512-bit width vectors. In single precision, this means 8/16 floats per vector. Each core also has 16/32 registers that are accessible in a single clock cycle. Registers sit on top of the memory hierarchy. FMA units have a latency of 4 clock cycles, and a throughput of 2 IPC[^ipc]. Well-designed kernels and compilers can saturate FMA throughput, so the first-dispatch latency is not relevant. This gives us enough information to calculate the compute bandwidth:
+Intel Golden Cove core has two FMA (fused multiply-add) units that can operate on 256-bit width vectors simultaneously. In single precision, this means 8 floats per vector. Each core also has 16 registers that are accessible in a single clock cycle. Registers sit on top of the memory hierarchy. FMA units have a latency of 4 clock cycles, and a throughput of 2 IPC[^ipc]. GEMM being an arithmetic demanding operation, we care only about FMA streaming throughput. The first-dispatch latency therefore is not relevant. This gives us enough information to calculate the compute bandwidth:
 
 $$
-2 \text{ ops } \times 2 \text{ IPC } \times 16 \text{ floats/cycle } \times 2.5 \text{ GHz } = 160 \text{ GFLOP/s }
+2 \text{ ops } \times 2 \text{ IPC } \times 8 \text{ floats/cycle } \times 2.5 \text{ GHz } = 80 \text{ GFLOP/s }
 $$
 
-{{< alert "circle-info" >}}
-If the compiler chooses to use 256-bit width vectors, our performance ceiling halves to 80 GFLOP/s.
-{{< /alert >}}
-
-The memory bandwidth on our setup is 10GB/s per thread from a simple `mbw` benchmark. Therefore, the ridge point \\(\gamma\\) of this CPU is:
+The DRAM bandwidth on our setup is 10GB/s per thread from a simple `mbw` benchmark. Therefore, the ridge point \\(\gamma\\) of this CPU across DRAM is:
 
 $$
-\gamma = \frac{\text{compute BW}}{\text{memory BW}} = 16 \text{ FLOPs/byte }
+\gamma = \frac{\text{compute BW}}{\text{memory BW}} = 8 \text{ FLOPs/byte }
 $$
 
-In practice, the ridge point is higher due to cache effects, branching, and other instruction overheads. Nonetheless our GEMM operation can become compute-bound only beyond the ridge point of \\( N \gt 128\\).
+In practice, the ridge point depends on cache reuse, branching, and other instruction overheads. For instance, if we manage to keep the entire working set of a GEMM operation within cache boundary (which we will see soon with a cache-blocked GEMM kernel), the arithmetic intensity necessary to saturate compute units is quite lower. Here is a hierarchical roofline model across the entire memory hierarchy and the corresponding ridge points.
 
-{{< alert "circle-info" >}}
-GEMM example in the naive kernel above accounts for \\(2 \times 10^9\\) floating point operations. We barely exceed ~1% of the CPU's arithmetic capacity. As we will see, we do a poor job keeping the FMA units busy; the CPU spends majority time in load/stores.
-{{< /alert >}}
+{{< figure
+    src="/posts/sgemm/hierarchy_roofline.png"
+    alt="Memory Hierarchy Roofline Model"
+>}}
+
+The focus of this worklog is on single-threaded operations only.
 
 ## Memory Layout
 As mentioned earlier, our arrays store floats in a row-major order, i.e., elements of a row are laid out consecutively. CPUs fetch contiguous blocks of memory (called a cache line) in the hope that consecutive memory elements will be needed for further processing. If a computation does not utilize all items in a cache line optimally, CPU cycles are wasted.
@@ -318,20 +317,60 @@ We iteratively broadcast + FMA each of the scalars from \\(A\\) to vectors of \\
     alt="Outer Product view of A, B, C."
 >}}
 
+Here is a pseudocode of the inner loop:
+
+```mathematica
+<!-- m=MR scalars of A -->
+<!-- n=NR/8 vectors of B -->
+a = {}
+b[NR/8] = {}
+c[MR][NR/8] = {}
+
+<!-- Load tile from C -->
+for m in MR:
+  for n in NR/8:
+    c[m][n] = load(C[m][n])
+
+<!-- Loop over inner dimension -->
+for p in K:
+  b[1], ..., b[NR/8] = load(B[:NR])
+
+  <!-- One iteration (hot FMA loop) -->
+  for m in MR:
+    a = broadcast(load(A[m]))
+    <!-- Outer product within registers -->
+    for n in NR/8:
+      c[m][n] = fma(a, b[n], c[m][n])
+  
+  A += MR
+  B += NR
+
+<!-- Store back to C -->
+for m in MR:
+  for n in NR/8:
+    store(c[m][n], C[m][n])
+```
+
 ### Optimal Tile Sizes
-When using `YMM` vector registers, we have a limit of 16. The vectors we load from \\(B\\) of size \\(\text{NR}\\) must be a multiple of 8. Hence \\(B\\) vector will use \\(\text{NR}/8\\) registers. Each scalar from \\(A\\) broadcasted into a vector uses 1 register, ipso facto \\(\text{MR} > 1\\). The \\(C\\) accumulator of size is register resident, requiring \\(\text{MR} \times \text{NR}/8\\) registers. Therefore, we must satisfy the inequality:
+When using `YMM` vector registers, we have a limit of 16. The scalars we load from \\(B\\) of size \\(\text{NR}\\) must be a multiple of 8 to fit in one register. Hence \\(B\\) vector will use \\(\text{NR}/8\\) registers. Each scalar from \\(A\\) uses 1 register: the scalar is broadcasted to the entire vector. The \\(C\\) accumulator fully resides in registers, requiring \\(\text{MR} \times \text{NR}/8\\) registers. Therefore, we need to satisfy the inequality:
 
 $$ \text{MR} \cdot \frac{\text{NR}}{8} + \frac{\text{NR}}{8} + 1 \leq 16 $$
 
-| MR | NR | YMM Register Count | Loads per iteration (bytes) | FLOPs per iteration | FLOPs/byte | Remark |
-|----|----|--------------------|---------------------------|---------------------|------------|--------|
-| 1  | 56 | 15                 | 228                       | 112                 | 0.491      |        |
-| 2  | 40 | 16                 | 168                       | 160                 | 0.952      |        |
-| 4  | 24 | 16                 | 112                       | 192                 | 1.714      |        |
-| 6  | 16 | 15                 | 88                        | 192                 | 2.182      |        |
-| 14 | 8  | 16                 | 88                        | 224                 | 2.545      |        |
+Since \\(\text{MR} \ge 1\\) and \\(\text{NR} \ge 8\\) is necessary, we have the following acceptable combinations:
 
-While many pairs of values satisfy this inequality, and it is worth testing different values, we will go with a well-tested BLAS GEMM micro-kernel of size \\(6 \times 16\\).
+$$
+\begin{array}{|c|c|c|c|c|c|}
+\hline
+\text{MR} & \text{NR} & \text{YMM register ct.} & \text{Loads/iter (bytes)} & \text{FLOPs/iter} & \text{FLOPs/byte} \\\\
+\hline
+1 & 56 & 15 & 228 & 112 & 0.491 \\\\
+2 & 40 & 16 & 168 & 160 & 0.952 \\\\
+4 & 24 & 16 & 112 & 192 & 1.714 \\\\
+6 & 16 & 15 & 88 & 192 & 2.182 \\\\
+14 & 8 & 16 & 88 & 224 & 2.545 \\\\
+\hline
+\end{array}
+$$
 
 
 [^sse]: Streaming SIMD Extensions debuted with Pentium-III.
