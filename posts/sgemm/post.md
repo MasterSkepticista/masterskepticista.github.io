@@ -6,7 +6,7 @@ draft: true
 tags: ["sgemm", "avx512", "matmul"]
 ---
 
-> **Note:** Work-in-progress. Code available [here](https://github.com/masterskepticista/sgemm.c).
+> Work-in-progress. Code available [here](https://github.com/masterskepticista/sgemm.c).
 
 
 This is a worklog on optimizing a single-precision generalized matrix-multiply (GEMM) kernel in C to land close to Intel MKL performance. In the process of learning this for myself, I found the following sources really helpful. Building on the following, this article aims to approach the design decisions of GEMM at the level of a chip ISA. 
@@ -221,11 +221,7 @@ From the Golden Cove [microarchitecture](https://cdrdv2-public.intel.com/821613/
 | Stores | $2 \times 256$ | $4 \times 256$ | $2$ |
 | FMAs | $2$ | $4$ | $2$ |
 
-
-> **Note:** A 32-bit scalar from `A` is broadcasted to `ymm1` and reused for the entire iteration. The load cost is negligible compared to the rest, hence ignored in calculations.
-
-
-Loads take approximately 2.67 cycles. FMAs execute as soon as the operands are ready, and hence the load ops 'mask' the 2 cycles consumed by FMAs. Stores take 2 cycles after FMAs retire. So the percentage of 'useful' multiply-add work:
+Loads take approximately 2.67 cycles^[A 32-bit scalar from `A` is broadcasted to `ymm1` and reused for the entire iteration. The load cost is negligible compared to the rest, hence ignored in calculations.]. FMAs execute as soon as the operands are ready, and hence the load ops 'mask' the 2 cycles consumed by FMAs. Stores take 2 cycles after FMAs retire. So the percentage of 'useful' multiply-add work:
 
 $$
 \frac{2 \text{ FMA}}{2.67 \text{ loads } + 2 \text{ stores}} = \frac{2}{4.67} \approx 0.43
@@ -304,10 +300,7 @@ What motivates this reformulation?
 ### Outer Product using Registers
 CPUs do not have an intrinsic for vector outer product, which means we need to compute one iteratively using vector FMAs.
 
-Consider loading $\text{MR}$ scalars from $A$ across the column, and $\text{NR}$ scalars from $B$ across the row.
-
-
-> **Note:** You may (rightly) wonder that accesses across $A$ are not cache-friendly. In practice, we transpose a tile of `A` into a buffer, which gets passed into the outer-product microkernel. Transposed `A` is cache-friendly and reuses the same for `K` outer products. Check code for details.
+Consider loading $\text{MR}$ scalars from $A$ across the column, and $\text{NR}$ scalars from $B$ across the row^[You may (rightly) wonder that accesses across $A$ are not cache-friendly. In practice, we transpose a tile of `A` into a buffer, which gets passed into the outer-product microkernel. Transposed `A` is cache-friendly and reuses the same for `K` outer products. Check code for details.].
 
 
 We iteratively broadcast + FMA each of the scalars from $A$ to vectors of $B$, cumulatively storing the result in an $\text{MR} \times \text{NR}$ register tile of $C$.
