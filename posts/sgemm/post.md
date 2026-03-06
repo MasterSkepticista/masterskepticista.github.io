@@ -273,12 +273,12 @@ Here is an example of a vector outer product with $a^{2 \times 1} \otimes b^{1 \
 $$
 a \otimes b = 
 \begin{bmatrix} 
-a_0 \\\\ a_1
+a_0 \\ a_1
 \end{bmatrix} \begin{bmatrix} 
 b_0 & b_1 
 \end{bmatrix} = \begin{bmatrix} 
-a_0 b_0 & a_0 b_1 \\\\ 
-a_1 b_0 & a_1 b_1 \\\\ 
+a_0 b_0 & a_0 b_1 \\ 
+a_1 b_0 & a_1 b_1 \\
 \end{bmatrix}
 $$
 
