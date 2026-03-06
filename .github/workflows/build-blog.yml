@@ -24,3 +24,8 @@ jobs:
     
     - name: Generate blog
       run: python3 generator.py
+    
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./docs
