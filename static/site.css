@@ -111,11 +111,11 @@ ul.content-listing li.listing .listing-body p {
 }
 
 .katex {
-    font-size: 0.9em !important;
+    font-size: 0.95em !important;
 }
 
 .katex-display {
-    font-size: 0.9em !important;
+    font-size: 0.95em !important;
 }
 
 .sidenote-number {
@@ -218,5 +218,9 @@ blockquote a {
 
     article .article-date {
         text-align: left;
+    }
+
+    body {
+        padding-left: 5%;
     }
 }
