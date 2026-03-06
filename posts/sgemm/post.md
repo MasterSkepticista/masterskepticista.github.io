@@ -1,6 +1,6 @@
 ---
 title: Optimizing a GEMM from First Principles
-date: 2025-07-14
+date: 2026-01-20
 description: Within 95% of Intel MKL (single-threaded).
 draft: true
 tags: ["sgemm", "avx512", "matmul"]
