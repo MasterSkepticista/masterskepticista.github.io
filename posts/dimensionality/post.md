@@ -162,12 +162,15 @@ params = brain.init(rng_init, jnp.zeros_like(x))["params"]
 params = fit(brain, params, x, y)
 ```
 
-<iframe 
-  src="images/manifold_3d.html" 
-  width="100%" 
-  height="480"
-  frameborder="0"
-></iframe>
+<figure style="text-align: center;">
+  <iframe 
+    src="images/manifold_3d.html" 
+    width="100%" 
+    height="480"
+    frameborder="0"
+  ></iframe>
+  <figcaption>3D Manifold (drag to rotate)</figcaption>
+</figure>
 
 The decision boundary is now a plane, which can separate the two classes with $\sim$ 100% accuracy. This is because the model now stretches the center cluster out across z-axis, and slices a plane orthogonal to it.
 

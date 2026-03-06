@@ -116,7 +116,7 @@ An algorithm is parallelizable if $\frac{W}{S} > 1$. Can we compute sum in less 
 
 The problem with the previous kernel is that it was not step efficient. It takes $O(N)$ steps to sum over the array. Using a binary tree reduction, we can sum the array in $\log N$ steps. Note that we still do $N-1$ adds and $N$ reads. Therefore this approach remains work efficient.
 
-![Tree Reduction](images/tree_sum.png)
+<img src="images/tree_sum.png" alt="Tree Reduction" style="width: 480px; display: block; margin: 0 auto;">
 
 In CUDA, threads are grouped as "blocks". We will divide the array into blocks of certain size, which is a tunable parameter. Each block will sum its elements in parallel, and then the partial sums will be accumulated using atomics. For simplicity, I will depict the reduction process for a `block_size` of 8.
 
@@ -145,7 +145,7 @@ buffer[tid] = arr[idx];
 __syncthreads();
 ```
 
-![Divergent Threads](images/2_divergent.png)
+<img src="images/2_divergent.png" alt="Divergent Threads" style="width: 480px; display: block; margin: 0 auto;">
 
 We perform the reduction once the buffer is populated. GPU invokes all blocks in parallel. Each block performs a tree reduction on the buffer. The process is as follows:
 
@@ -214,7 +214,7 @@ if (index < blockDim.x) {
 }
 ```
 
-![Non-divergent Threads](images/3_nondivergent.png)
+![Non-divergent Threads](images/3_nondivergent.png){style="width: 480px; display: block; margin: 0 auto;"}
 
 With this change, our kernel achieves **317 GB/s** effective bandwidth, a **42%** improvement over the previous kernel.
 
@@ -304,5 +304,3 @@ __device__ void warpReduce(volatile float *buffer, int tid) {
 We are now at **859 GB/s** effective bandwidth, within ~2% of `jax.numpy.sum`.
 
 Who doesn't like speed?
-
----
