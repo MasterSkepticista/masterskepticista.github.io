@@ -111,11 +111,11 @@ ul.content-listing li.listing .listing-body p {
 }
 
 .katex {
-    font-size: 1.08em !important;
+    font-size: 0.9em !important;
 }
 
 .katex-display {
-    font-size: 1.08em !important;
+    font-size: 0.9em !important;
 }
 
 .sidenote-number {
@@ -193,7 +193,7 @@ blockquote a {
 
 @media (max-width: 760px) {
     html {
-        font-size: 11px;
+        font-size: 12px;
     }
 
     h1 {
