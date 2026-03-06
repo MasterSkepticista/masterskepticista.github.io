@@ -1,5 +1,5 @@
 ---
-title: Optimizing a GEMM from first principles
+title: Optimizing a GEMM from First Principles
 date: 2025-07-14
 description: Within 95% of Intel MKL (single-threaded).
 draft: true
@@ -46,6 +46,7 @@ It takes ~1.2 seconds for this kernel to multiply two 1000-size square matrices.
 ## Roofline Analysis
 
 System specs:
+
 * Intel Xeon [Sapphire Rapids] 8488C @ 2.5GHz, 2 vCPUs
   * Cache L1d: 48 KB/core | L2: 2 MB/core | L3: 105 MB/shared
   * ISA support: AVX-2 | AVX-512
@@ -95,6 +96,7 @@ As mentioned earlier, our arrays store floats in a row-major order, i.e., elemen
 
 
 This gives us a couple of observations:
+
 * Innermost loop iterates the fastest, over dimension `K`. 
 * Array `A[M * K]` has `K` columns, with each element `A[i][k]` consecutively laid out in memory. Therefore, iteration over `K` is cache-friendly.
 * Array `B[K * N]` has `K` rows, each element `B[k][j]` requires jumping an entire row of `N` elements in memory. This results in a poor cache utilization.

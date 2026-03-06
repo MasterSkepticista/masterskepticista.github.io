@@ -1,5 +1,5 @@
 ---
-title: "Data Parallelism using standard Ethernet"
+title: "Data Parallelism using Standard Ethernet"
 date: 2024-08-05
 description: "Bag-of-tricks for multi-node training for the GPU Poor."
 tags: ["data parallelism", "multi-node", "jax", "tensorflow", "pytorch"]
@@ -15,6 +15,7 @@ But can we get away without spending a fortune on 100G/400G NICs for training mo
 ## Infrastructure
 
 We had four^[We actually had an odd number of nodes. I rounded all calculations assuming 4, for it is a nice number for hardware.] server blades each with the following spec:
+
 * Dual socket Xeon 6258R (28C/56T per socket)
 * 512GB DDR4 Memory
 * One RTX-3090 GPU
@@ -23,6 +24,7 @@ We had four^[We actually had an odd number of nodes. I rounded all calculations 
 ## Goals
 
 We had to consolidate these servers into a multi-node training cluster:
+
 * With above **90%** scaling factor.
 * With support for medium sized models (think ResNet-50/101 or ViT-S/B) up to 100M params.
 * Using 10G Ethernet only. Any other NIC would require a new switch and a new card.
@@ -68,16 +70,13 @@ $$
 
 For a ResNet50 with 25M parameters, `gradient_size` is roughly 100MB per step, per GPU. Since each GPU needs a full copy of globally averaged gradients - a naive algorithm would require the lead host to `fetch` and `broadcast` 100MB data to/from each GPU. This would create a massive bottleneck on the main host, since the communication time would grow linearly on the number of GPUs.
 
-Lucky for us, most implementations^[[NCCL Bandwidth and Throughput Calculation](https://github.com/NVIDIA/nccl-tests/blob/master/doc/PERFORMANCE.md)] of collectives today use the `RingAllReduce` algorithm, which amortizes the amount of transfers as number of GPUs increase, by communicating 'chunked' gradients. In other words: data communicated per GPU reaches an asymptotic limit, independent of the number of GPUs in the cluster.
+Lucky for us, most implementations^[[NCCL Bandwidth and Throughput Calculation](https://github.com/NVIDIA/nccl-tests/blob/master/doc/PERFORMANCE.md)] of collectives today use the `RingAllReduce` algorithm^[In complex topologies spanning thousands of GPUs, a [`HierarchicalAllReduce`](https://developer.nvidia.com/blog/massively-scale-deep-learning-training-nccl-2-4/) algorithm scales better.], which amortizes the amount of transfers as number of GPUs increase, by communicating 'chunked' gradients. In other words: data communicated per GPU reaches an asymptotic limit, independent of the number of GPUs in the cluster.
 
 $$
 \text{data\_per\_gpu} = 2 (N - 1) \frac{\text{gradient\_size}}{N} = \frac{3}{2} \times 100 \text{ MB}
 $$
 
 If you are interested in the proof, Gibiansky has a great article explaining the [`RingAllReduce`](https://andrew.gibiansky.com/blog/machine-learning/baidu-allreduce/) algorithm.
-
-
-> **Note:** In complex topologies spanning thousands of GPUs, a [`HierarchicalAllReduce`](https://developer.nvidia.com/blog/massively-scale-deep-learning-training-nccl-2-4/) algorithm scales better.
 
 
 On our 4-node cluster with 10GbE bi-directional links, time spent in communication would be
@@ -111,7 +110,6 @@ Now, our ResNet50 takes 9.1h to train (i.e., a $2.74\times$ speedup over single 
 
 <figure>
   <img src="images/baseline.png" alt="Scaling efficiency baseline">
-  <figcaption>Scaling efficiency baseline</figcaption>
 </figure>
 
 
@@ -121,7 +119,7 @@ If we take a close look at the formulation of $\eta$, we only have two ways to i
 
 We will now explore each optimization in detail.
 
-## 1. Reducing Communication
+## Reducing Communication
 
 Upto this point we communicate 25M `float32` values at the end of each step. One way to reduce communication could be by compressing gradients (lossy or otherwise). Here are our options:
 1. Cast gradients to `bfloat16`: No risk of overflow, but lossy due to high machine $\epsilon$^[[Comparing `bfloat16` range and precision to other 16-bit numbers](https://www.johndcook.com/blog/2018/11/15/bfloat16/)].
@@ -160,14 +158,13 @@ $$
 
 <figure>
   <img src="images/gcompression.png" alt="Gradient compression results">
-  <figcaption>Gradient compression results</figcaption>
 </figure>
 
 
 ...which is pretty neat! This brings down our training time from 9.1h to 7.7h.
 
 
-## 2. Deferring Communication
+## Deferring Communication
 
 Gradient synchronization is required at the end of each batch, and there are only so many samples we can fit in a single forward/backward pass per batch...
 
@@ -234,13 +231,12 @@ $$
 
 <figure>
   <img src="images/gaccumulation.png" alt="Gradient accumulation results">
-  <figcaption>Gradient accumulation results</figcaption>
 </figure>
 
 
 Ouch, we were SO close to hit our $90\%$ goal!
 
-## 3. Faster Communication
+## Faster Communication
 
 Ok, no scam going on here. We did _not_ end up buying a faster NIC. Remember that our existing NIC had dual 10G ethernet ports - one of which was running on 1G for networking. We reconfigured all four servers to connect directly to the 10G switch, which in turn was connected to the Internet via a single 1G port.
 
@@ -260,7 +256,6 @@ $$
 
 <figure>
   <img src="images/multinic.png" alt="Multi-NIC communication results">
-  <figcaption>Multi-NIC communication results</figcaption>
 </figure>
 
 
