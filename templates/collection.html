@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}{{ section.title }} - {{ site.site_name }}{% endblock %}
+{% block description %}{{ section.title }}{% endblock %}
+
+{% block content %}
+<article class="group">
+    <h1 class="content-listing-header sans">{{ section.title }}</h1>
+
+    <ul class="content-listing">
+        {% for entry in section.entries %}
+        <li class="listing">
+            <div class="listing-row">
+                <div class="listing-body">
+                    <h3><a href="{{ entry.external_url }}">{{ entry.title }}</a></h3>
+
+                    {% if entry.summary_html %}
+                    <p>{{ entry.summary_html | safe }}</p>
+                    {% elif entry.summary %}
+                    <p>{{ entry.summary }}</p>
+                    {% endif %}
+                    <br>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</article>
+{% endblock %}

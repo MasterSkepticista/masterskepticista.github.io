@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }}{% endblock %}
+{% block description %}{{ post.description }}{% endblock %}
+
+{% block meta_tags %}
+    <meta property="og:title" content="{{ post.title }}">
+    <meta property="og:description" content="{{ post.description }}">
+    {% if post.canonical_url %}
+    <meta property="og:url" content="{{ post.canonical_url }}">
+    {% endif %}
+    <meta property="og:type" content="article">
+    {% if post.date_iso %}
+    <meta property="article:published_time" content="{{ post.date_iso }}">
+    {% endif %}
+    {% if post.author %}
+    <meta property="article:author" content="{{ post.author }}">
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+{% if post.external_url %}
+<script>
+    window.location.href = '{{ post.external_url }}';
+</script>
+<p>Redirecting to <a href="{{ post.external_url }}">{{ post.external_url }}</a>...</p>
+{% else %}
+<article class="group">
+    <h1>{{ post.title }}</h1>
+
+    {% if post.date_formatted %}
+    <div class="article-meta-row">
+        <p class="article-date">{{ post.date_formatted }}</p>
+    </div>
+    {% endif %}
+
+    <div class="post-content">
+        {{ post.content | safe }}
+    </div>
+</article>
+{% endif %}
+{% endblock %}
+
+{% block print_footer %}
+{{ post.title }}{% if post.date_formatted %} - {{ post.date_formatted }}{% endif %}{% if post.author %} - {{ post.author }}{% endif %}
+{% endblock %}

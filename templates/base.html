@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns#">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{% block title %}{{ site.site_name }}{% endblock %}</title>
+    <meta name="description" content="{% block description %}{{ site.site_name }}{% endblock %}">
+
+    {% if canonical_url %}
+    <link rel="canonical" href="{{ canonical_url }}">
+    {% endif %}
+
+    {% block meta_tags %}{% endblock %}
+
+    <link rel="stylesheet" href="{{ asset_prefix }}/tufte.css">
+    <link rel="stylesheet" href="{{ asset_prefix }}/site.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <nav class="group">
+            <a href="{{ home_url }}">{{ site.site_name }}</a>
+            <a href="{{ code_url }}">Code</a>
+            <!-- <a href="{{ papers_url }}">PAPERS</a> -->
+            <a href="{{ slides_url }}">Slides</a>
+            <a href="{{ resume_url }}">CV</a>
+        </nav>
+    </header>
+    
+    {% block content %}{% endblock %}
+
+    <span class="print-footer">{% block print_footer %}{{ site.site_name }}{% endblock %}</span>
+
+    <footer>
+        Sampling meaning from a non-stationary prior.
+        <div class="credits">
+            {% for link in site_links %}
+            <a class="site-link" href="{{ link.url }}" aria-label="{{ link.name }}">
+                <span class="site-icon" aria-hidden="true">
+                    {% if link.icon == 'github' %}
+                    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img" focusable="false">
+                        <path d="M8 .198a8 8 0 0 0-2.53 15.59c.4.074.547-.174.547-.386 0-.191-.007-.697-.01-1.368-2.225.483-2.695-1.073-2.695-1.073-.364-.924-.89-1.17-.89-1.17-.727-.497.055-.487.055-.487.804.056 1.227.826 1.227.826.714 1.223 1.873.87 2.33.665.072-.517.28-.87.508-1.07-1.776-.202-3.644-.888-3.644-3.953 0-.873.312-1.587.823-2.147-.082-.202-.357-1.015.078-2.117 0 0 .67-.214 2.2.82A7.664 7.664 0 0 1 8 4.005c.68.003 1.366.092 2.006.27 1.53-1.034 2.198-.82 2.198-.82.437 1.102.162 1.915.08 2.117.513.56.822 1.274.822 2.147 0 3.073-1.87 3.748-3.65 3.946.288.248.544.738.544 1.488 0 1.074-.01 1.94-.01 2.204 0 .214.144.463.55.385A8 8 0 0 0 8 .198Z"/>
+                    </svg>
+                    {% elif link.icon == 'twitter' or link.icon == 'x' %}
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" focusable="false">
+                        <path d="M18.244 2H21.5l-7.12 8.137L22.75 22h-6.563l-5.14-6.72L5.17 22H1.91l7.614-8.701L1.5 2h6.73l4.646 6.143L18.244 2Zm-1.15 18h1.803L7.26 3.895H5.326L17.094 20Z"/>
+                    </svg>
+                    {% elif link.icon == 'scholar' or link.icon == 'google_scholar' %}
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" focusable="false">
+                        <path d="M12 3 1 9l4 2.18V17l7 4 7-4v-5.82L23 9 12 3Zm0 2.18L18.74 9 12 12.67 5.26 9 12 5.18Zm5 7.09V15.8l-5 2.86-5-2.86v-3.53l5 2.73 5-2.73Z"/>
+                    </svg>
+                    {% elif link.icon == 'linkedin' %}
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" focusable="false">
+                        <path d="M4.98 3.5C4.98 4.88 3.86 6 2.48 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.48 1 3.86 1 4.98 2.12 4.98 3.5ZM.5 8h4V23h-4V8Zm7 0h3.83v2.05h.05c.53-1.01 1.84-2.08 3.79-2.08 4.06 0 4.81 2.67 4.81 6.14V23h-4v-7.77c0-1.85-.03-4.23-2.58-4.23-2.58 0-2.97 2.01-2.97 4.1V23h-4V8Z"/>
+                    </svg>
+                    {% elif link.icon == 'subscribe' or link.icon == 'email' or link.icon == 'mail' %}
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" focusable="false">
+                        <path d="M2 5h20v14H2V5Zm2 2v.01L12 12l8-4.99V7H4Zm16 10V9.24l-7.47 4.67a1 1 0 0 1-1.06 0L4 9.24V17h16Z"/>
+                    </svg>
+                    {% elif link.icon == 'youtube' %}
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" focusable="false">
+                        <path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.4 3.5 12 3.5 12 3.5s-7.4 0-9.4.58A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.12c2 .58 9.4.58 9.4.58s7.4 0 9.4-.58a3 3 0 0 0 2.1-2.12A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.5v-7L16 12l-6.4 3.5Z"/>
+                    </svg>
+                    {% endif %}
+                </span>
+            </a>
+            {% endfor %}
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "\\[", right: "\\]", display: true },
+                    { left: "$", right: "$", display: false },
+                    { left: "\\(", right: "\\)", display: false }
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</body>
+</html>
