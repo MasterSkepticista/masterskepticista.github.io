@@ -32,15 +32,13 @@ DETR has three main components: a convolutional backbone (typically a ResNet), a
 
 ## Baseline
 
-To improve 'something', we must 'measure' that something. Our bench this time is an 8-A6000 cluster. I made a couple of changes to ensure PyTorch version was 'as fast as possible'. Here is a summary of digressions:
+To improve 'something', we must 'measure' that something. Our bench this time is an 8-A6000 cluster. I made a couple of changes to ensure PyTorch version was 'as fast as possible'^[I tried `torch.compile` with various options on sub-parts of the model/training step. It either ended up giving the same throughput, or failed to compile. So 'it is what it is'.]. Here is a summary of digressions:
+
 * Use [Flash Attention](https://arxiv.org/abs/2205.14135) in `F.scaled_dot_product_attention`.
 * Enable use of tensor cores by setting `torch.set_float32_matmul_precision(...)` to "medium" ("high" works just as good).
 * Wrap forward pass using `torch.autocast` to `bfloat16`.
 
 With these changes, it took 3 days (2.1 steps/s) to train a 300-epoch baseline on our cluster. I will skip the napkin math, but this is already faster than authors' numbers when normalized for per GPU FLOP throughput - notably from use of the new flash attention kernel that Ampere GPUs support.
-
-
-> **Note:** I tried `torch.compile` with various options on sub-parts of the model/training step. It either ended up giving the same throughput, or failed to compile. So 'it is what it is'.
 
 
 ## Refactor
@@ -58,12 +56,9 @@ This implementation takes 6.5 days to replicate the PyTorch baseline, at nearly 
 
 Now, the optimizations.
 
-### 1. Disable Matching for padded objects
+### Disable Matching for padded objects
 
-This is actually a bug-fix rather than an optimization. COCO dataset does not guarantee a fixed number of objects for each image. This means the bipartite matcher would have to map a fixed set of object queries (say 100) to a randomly varying number of target objects for each image, triggering an expensive retrace of the graph.
-
-
-> **Note:** XLA compiler can generate optimized graphs in part because memory allocation/deallocation is predictable, and constant-folding/fusion of operators is simpler when the entire computational graph layout is static. This is the price you pay for performance. You can read more [here](https://www.tensorflow.org/guide/function).
+This is actually a bug-fix rather than an optimization. COCO dataset does not guarantee a fixed number of objects for each image. This means the bipartite matcher would have to map a fixed set of object queries (say 100) to a randomly varying number of target objects for each image, triggering an expensive retrace of the graph^[XLA compiler can generate optimized graphs in part because memory allocation/deallocation is predictable, and constant-folding/fusion of operators is simpler when the entire computational graph layout is static. This is the price you pay for performance. You can read more [here](https://www.tensorflow.org/guide/function).].
 
 
 To prevent retracing, we add 'padding' objects and a boolean mask that allows us to filter dummy objects when computing loss.
@@ -102,9 +97,12 @@ With this bug-fix, we are now 40% faster, i.e. $1.4$ steps/s. It now takes 4.7 d
 ![](images/disable_padded.png)
 
 
-### 2. Mixed Precision MatMuls
+### Mixed Precision GEMMs
 
-Yes, there are no 'free-lunches', but I think we can make a strong case for the invention of `bfloat16` data type.
+Yes, there are no 'free-lunches', but I think the invention of `bfloat16` data type comes pretty close.
+
+<blockquote class="twitter-tweet"><a href="https://twitter.com/elevated_quark/status/1896392001953947940"></a></blockquote>
+
 We migrate `float32` matmuls to `bfloat16`, without any loss in final AP scores. This is what we did in the PyTorch baseline.
 In `flax`, this is the same as supplying `dtype=jnp.bfloat16` on supported modules.
 
@@ -123,7 +121,7 @@ This gets us above $2.1$ steps/s. We now have performance parity with PyTorch, w
 
 Huh! We should've called it a day... but let's keep going.
 
-### 3. Parallel Bipartite Matching on Decoders
+### Parallel Bipartite Matching on Decoders
 
 To achieve a high overall $\text{mAP}$ score, DETR authors propose computing loss over each decoder output. DETR uses a sequential stack of 6 decoders, each emitting bounding-box and classifier predictions for 100 object queries.
 
@@ -181,9 +179,9 @@ With this change, we are now stepping **10% faster** than PyTorch, at $2.4$ step
 ![](images/parallel_match.png)
 
 
-### 4. Use Flash Attention
+### Flash Attention
 
-XLA did not use flash attention kernel all along. It was added only recently through [`jax.nn.dot_product_attention`](https://github.com/google/jax/pull/21371) for Ampere and later architectures. Perhaps future XLA versions might automatically recognize a dot-product attention signature during `jit`, without us having to explicitly call via SDPA API. But that is not the case today, so we will make-do with this custom function call.
+XLA did not use flash attention kernel all along. It was added only recently through [`jax.nn.dot_product_attention`](https://github.com/google/jax/pull/21371) for Ampere and later architectures. Perhaps future XLA versions might automatically recognize a dot-product attention signature during `jit`, without us having to explicitly call via SDPA API. But that is not the case today, so we will make-do with this custom function call. We do not use dropout in the SDPA API^[As of writing, [`jax.nn.dot_product_attention`](https://github.com/google/jax/pull/21371) does not support attention dropout. This is because JAX and cuDNN use different PRNG implementations. Speedup outweighs the regularization benefits of dropout, so we will live with it for now.].
 
 ```python
 # models/detr.py#L261
@@ -202,10 +200,6 @@ else:
       deterministic=not train,
       capture_attention_weights=False)
 ```
-
-
-> **Note:** As of writing, [`jax.nn.dot_product_attention`](https://github.com/google/jax/pull/21371) does not support attention dropout. This is because JAX and cuDNN use different PRNG implementations. Speedup outweighs the regularization benefits of dropout, so we will live with it for now.
-
 
 For now, let us be content with the _potential_ speedup. We are now at $3.0$ steps/s, **33% faster** than PyTorch, taking 2 days to train.
 
