@@ -1,5 +1,5 @@
 body {
-    background-color: #fff;
+    background-color: #fffff8;
 }
 
 article .article-meta-row {
@@ -111,11 +111,11 @@ ul.content-listing li.listing .listing-body p {
 }
 
 .katex {
-    font-size: 0.95em !important;
+    font-size: 1.05em !important;
 }
 
 .katex-display {
-    font-size: 0.95em !important;
+    font-size: 1.05em !important;
 }
 
 .sidenote-number {
