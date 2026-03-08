@@ -261,4 +261,4 @@ $$
 
 ## Result
 
-This cluster achieved a throughput roughly 20% higher than a $16/hr V100 AWS instance. Our team saved ~$120k for close to a year of uptime.
+This cluster achieved a throughput roughly 20% higher than a $\$$16/hr V100 AWS instance. Our team saved $120k for close to a year of uptime.

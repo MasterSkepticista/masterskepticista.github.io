@@ -376,17 +376,17 @@ h1 {
   font-weight: 400;
   margin-top: 1.568rem;
   margin-bottom: 1.568rem;
-  font-size: 3.2rem;
-  line-height: 1.184
+  font-size: 2.5rem;
+  line-height: 0.784
 }
 
 h2 {
   font-style: normal;
   font-weight: 400;
-  margin-top: 1.866666666666667rem;
+  margin-top: 4rem;
   margin-bottom: 0;
   font-size: 2.1rem;
-  line-height: 0.933333333333333
+  line-height: 1
 }
 
 h3 {
@@ -410,7 +410,7 @@ p .subtitle {
 article {
   width: 55%;
   position: relative;
-  padding: 2rem 0
+  padding: 5rem 0
 }
 
 p,
@@ -424,7 +424,7 @@ ul {
 p {
   padding-right: 0;
   vertical-align: baseline;
-  text-align: justify
+  text-align: left
 }
 
 li {

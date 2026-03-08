@@ -5,11 +5,7 @@ description: A step-by-step guide on turning simple math into a flex.
 tags: ["cuda"]
 ---
 
-Reduce operations are common in HPC applications. They combine array elements into a single value via `sum`, `min`, `max`, `product`, etc.
-
-Reduce operations are embarrassingly parallel^[Associativity: $(a + b) + c = a + (b + c)$ means grouping does not affect the result, so partial sums can be computed independently.], which makes them a great candidate to be run on GPUs.
-
-This post will walk through a series of optimizations^[See [Optimizing Parallel Reduction in CUDA (M. Harris)](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf).] to iteratively obtain maximum device throughput.
+Reduce operations are common in HPC applications. They combine array elements into a single value via `sum`, `min`, `max`, `product`, etc. Reduce operations are embarrassingly parallel^[Associativity: $(a + b) + c = a + (b + c)$ means grouping does not affect the result, so partial sums can be computed independently.], which makes them a great candidate to be run on GPUs. This post will walk through a series of optimizations^[See [Optimizing Parallel Reduction in CUDA (M. Harris)](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf).] to iteratively obtain maximum device throughput.
 
 Code is available on [GitHub](https://github.com/MasterSkepticista/parallel_reductions_cuda).
 
