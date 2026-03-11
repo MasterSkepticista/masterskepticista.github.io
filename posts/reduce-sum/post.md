@@ -35,6 +35,7 @@ $$
 $$
 
 Arithmetic intensity $\alpha \lt\lt \gamma$: it is severely memory bound. We can estimate the runtime based on peak compute and memory throughput values:
+
 * $N$ single precision reads at 936 GB/s = 0.136 ms
 * $N$ single precision adds at 35.6 TFLOPS = 0.0036 ms
 
@@ -43,6 +44,7 @@ The theoretical minimum time for this operation is 0.136 + 0.0036 = 0.1396 ms. S
 ## Complexity Analysis
 
 [Brent's theorem](https://stanford.edu/~rezab/dao/notes/lecture01/cme323_lec1.pdf) is how we compare efficiency across different parallel algorithms. For a parallel algorithm, we can calculate:
+
 * $W$: work, the total number of operations if run serially.
 * $S$: step complexity, or the serialization cost when certain operations cannot be parallelized.
 * $P$: number of parallel processors.
@@ -54,6 +56,7 @@ $$
 $$
 
 We can derive a couple of interesting bounds which will be helpful later:
+
 * $T_\infty = S$: Infinite parallelism boils down to the time taken in sequential operations.
 * $T_1 = W$: Single processor time is when the total work is performed sequentially.
 * $T_1 / T_p$: Speedup when using $P$ processors.
