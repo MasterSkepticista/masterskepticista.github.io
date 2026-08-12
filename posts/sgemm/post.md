@@ -1,12 +1,21 @@
 ---
 title: sgemm.c
 date: 2026-01-20
-description: Matching openBLAS matmul in pure C.
+description: Matching openBLAS matmul in pure C (using AVX-512).
 draft: true
 tags: ["sgemm", "avx512", "matmul"]
 ---
 
-> Work-in-progress. Code available [here](https://github.com/masterskepticista/sgemm.c).
+> Code available [here](https://github.com/masterskepticista/sgemm.c).
+
+| Kernel | Implementation | GFLOP/s ($N$=1024) |
+|--------|----------------|---------------------|
+| 0 | openBLAS reference | 190 |
+| 1 | Loop-reordered pointwise GEMM | 18 |
+| 2 | Cache-blocked pointwise GEMM | 46 |
+| 3 | AVX2 outer $6\times16$ | 53 |
+| 4 | AVX2 outer $6\times16$ with cache blocking | 103 |
+| 5 | AVX-512 outer $8\times48$ with cache blocking | 189 |
 
 
 This is a worklog on optimizing a single-precision generalized matrix-multiply (GEMM) kernel in C to land close to openBLAS performance. In the process of learning this for myself, I found the following sources really helpful. The goal of this worklog is to approach the design decisions of GEMM at the level of a chip ISA. 
@@ -421,4 +430,9 @@ With these changes, we approach the machine limit of 256-bit wide FMAs!
 
 ## Wider Registers
 
-We now have a playbook. We rewrite the same kernel with 512-bit intrinsics, and compute ideal values of `MR` and `NR` that saturate the FLOPs/byte. In my case, `MR=8`, `NR=48` comes within 95% of Intel MKL.
+We rewrite the same outer-product kernel with 512-bit intrinsics, and compute ideal values of `MR` and `NR` that saturate the FLOPs/byte. In my case, `MR=8`, `NR=48` matches openBLAS on large matrix sizes^[OpenBLAS achieves 200+ GFLOP/s throughput on small matrices (close to machine limit) because it skips the packing and issues direct GEMM on in-cache arrays. I skip this to keep the code readable.]. Same micro-optimizations carry into this kernel as well.
+We started at 1.7 GFLOP/s with the same underlying computation; and rearranging it around the hardware gets us within striking distance of openBLAS.
+
+![Outer Product with Cache Blocking](https://github.com/MasterSkepticista/sgemm.c/blob/main/figures/spr/sgemm_gflops_0_5.png?raw=true)
+
+This is the GEMM playbook: reuse data at every level of the memory hierarchy, keep the hot tile in registers, and make the FMA units the bottleneck. This is perhaps the story behind all high-performance kernels, on CPUs or XPUs: keep data close, reuse aggressively, and give the compute units enough independent work to stay busy.
