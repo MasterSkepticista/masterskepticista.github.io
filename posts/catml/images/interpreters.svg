@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 500" role="img" aria-labelledby="title desc">
+  <title id="title">Shape naturality square</title>
+  <desc id="desc">A commuting square from the program category to concrete values and shapes.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#222"/>
+    </marker>
+    <style>
+      .box { fill: #fff; stroke: #222; stroke-width: 2.5; rx: 12; }
+      .label { font: 26px Georgia, serif; fill: #222; text-anchor: middle; }
+      .symbol { font: italic 30px Georgia, serif; fill: #222; text-anchor: middle; }
+      .small { font: italic 20px Georgia, serif; fill: #444; text-anchor: middle; }
+      .arrow { fill: none; stroke: #222; stroke-width: 2.5; marker-end: url(#arrow); }
+      .identity { fill: none; stroke: #222; stroke-width: 2.5; }
+    </style>
+  </defs>
+  <rect class="box" x="70" y="60" width="210" height="100"/>
+  <text class="symbol" x="175" y="105">𝒫</text>
+  <text class="label" x="175" y="139">programs</text>
+
+  <rect class="box" x="580" y="60" width="210" height="100"/>
+  <text class="symbol" x="685" y="105">𝒱</text>
+  <text class="label" x="685" y="139">values</text>
+
+  <rect class="box" x="70" y="340" width="210" height="100"/>
+  <text class="symbol" x="175" y="385">𝒮</text>
+  <text class="label" x="175" y="419">shapes</text>
+
+  <rect class="box" x="580" y="340" width="210" height="100"/>
+  <text class="symbol" x="685" y="385">𝒮</text>
+  <text class="label" x="685" y="419">shapes</text>
+
+  <path class="arrow" d="M282 110 H568"/>
+  <text class="small" x="425" y="91">Fₑᵥₐₗ</text>
+
+  <path class="arrow" d="M175 162 V328"/>
+  <text class="small" x="119" y="251" transform="rotate(-90 119 251)">Fₛₕₐₚₑ</text>
+
+  <path class="arrow" d="M685 162 V328"/>
+  <text class="small" x="741" y="251" transform="rotate(90 741 251)">Gₛₕₐₚₑ</text>
+
+  <path class="identity" d="M282 384 H578"/>
+  <path class="identity" d="M282 396 H578"/>
+  <text class="small" x="430" y="374">id𝒮</text>
+
+  <circle cx="430" cy="250" r="8" fill="#b31b34"/>
+  <text class="small" x="430" y="286">commutes</text>
+</svg>

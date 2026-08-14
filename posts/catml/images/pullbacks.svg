@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 310" role="img" aria-labelledby="title desc">
+  <title id="title">Pullbacks reverse composition</title>
+  <desc id="desc">Primal values flow from X to Y to Z while cotangents flow from Z back to Y and X.</desc>
+  <defs>
+    <marker id="right" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2455c3"/></marker>
+    <marker id="left" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#b31b34"/></marker>
+    <style>
+      .node { fill: #fff; stroke: #222; stroke-width: 2.5; }
+      .main { font: 26px Georgia, serif; fill: #222; text-anchor: middle; }
+      .small { font: italic 19px Georgia, serif; fill: #444; text-anchor: middle; }
+      .forward { fill: none; stroke: #2455c3; stroke-width: 3; marker-end: url(#right); }
+      .backward { fill: none; stroke: #b31b34; stroke-width: 3; marker-end: url(#left); }
+    </style>
+  </defs>
+  <circle class="node" cx="105" cy="105" r="44"/><text class="main" x="105" y="114">X</text>
+  <circle class="node" cx="410" cy="105" r="44"/><text class="main" x="410" y="114">Y</text>
+  <circle class="node" cx="715" cy="105" r="44"/><text class="main" x="715" y="114">Z</text>
+  <path class="forward" d="M150 91 C230 49, 290 49, 365 91"/><text class="small" x="258" y="48">f</text>
+  <path class="forward" d="M455 91 C535 49, 595 49, 670 91"/><text class="small" x="562" y="48">g</text>
+  <path class="backward" d="M670 122 C590 190, 530 190, 455 122"/><text class="small" x="562" y="202">g*</text>
+  <path class="backward" d="M365 122 C285 190, 225 190, 150 122"/><text class="small" x="258" y="202">f*</text>
+  <text class="small" x="410" y="267">values →     ← cotangents</text>
+</svg>

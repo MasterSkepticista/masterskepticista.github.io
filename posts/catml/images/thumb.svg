@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">CatML: one program, many meanings</title>
+  <desc id="desc">A traced program branches into evaluation, shapes, parameter counts, and gradients.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto"><path d="M0,0 L0,8 L11,4 z" fill="#ede7dc"/></marker>
+    <style>
+      .title { font: 700 74px Georgia, serif; fill: #f7f2e8; text-anchor: middle; }
+      .sub { font: italic 31px Georgia, serif; fill: #d8cfbf; text-anchor: middle; }
+      .box { fill: #243752; stroke: #ede7dc; stroke-width: 3; rx: 18; }
+      .label { font: 27px Georgia, serif; fill: #f7f2e8; text-anchor: middle; }
+      .arrow { fill: none; stroke: #ede7dc; stroke-width: 4; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1200" height="630" fill="#142238"/>
+  <text class="title" x="600" y="115">CatML</text>
+  <text class="sub" x="600" y="165">one program, many meanings</text>
+  <rect class="box" x="450" y="250" width="300" height="95"/><text class="label" x="600" y="307">traced program</text>
+  <rect class="box" x="60" y="455" width="220" height="80"/><text class="label" x="170" y="505">evaluation</text>
+  <rect class="box" x="330" y="455" width="220" height="80"/><text class="label" x="440" y="505">shapes</text>
+  <rect class="box" x="650" y="455" width="220" height="80"/><text class="label" x="760" y="505">parameters</text>
+  <rect class="box" x="920" y="455" width="220" height="80"/><text class="label" x="1030" y="505">gradients</text>
+  <path class="arrow" d="M500 345 L220 447"/><path class="arrow" d="M550 345 L460 447"/>
+  <path class="arrow" d="M650 345 L740 447"/><path class="arrow" d="M700 345 L980 447"/>
+</svg>
