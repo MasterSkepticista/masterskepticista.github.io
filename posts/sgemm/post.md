@@ -1,9 +1,9 @@
 ---
-title: sgemm.c
+title: Fast Matrix Multiplication in Pure C
 date: 2026-01-20
-description: Matching openBLAS matmul in pure C (using AVX-512).
+description: Within striking distance of OpenBLAS with AVX-512.
 draft: true
-tags: ["sgemm", "avx512", "matmul"]
+tags: ["sgemm", "avx512", "matmul", "openblas"]
 ---
 
 > Code available [here](https://github.com/masterskepticista/sgemm.c).
