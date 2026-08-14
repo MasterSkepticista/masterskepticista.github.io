@@ -6,7 +6,13 @@ draft: true
 tags: ["sgemm", "avx512", "matmul", "openblas"]
 ---
 
-> Code available [here](https://github.com/masterskepticista/sgemm.c).
+This post documents my attempt to optimize a single-precision general matrix multiplication (SGEMM) kernel in pure C, progressing from a naive implementation to near-OpenBLAS performance in single-threaded. Along the way, I connect each optimization to the CPU architecture and instruction set that make it effective. These resources were especially helpful:
+
+* [Algorithmica: Matrix Multiplication (Sergey Slotin)](https://en.algorithmica.org/hpc/algorithms/matmul/)
+* [Advanced Matrix Multiplication on Multi-Core Processors (Aman Salykova)](https://salykova.github.io/gemm-cpu)
+* [Can you multiply a matrix? (George Hotz)](https://youtu.be/VgSQ1GOC86s?si=G7VmTNu3uL5b0_8u)
+* [Fast Multidimensional Matrix Multiplication on CPU from Scratch (Simon Boehm)](https://siboehm.com/articles/22/Fast-MMM-on-CPU)
+
 
 | Kernel | Implementation | GFLOP/s ($N$=1024) |
 |--------|----------------|---------------------|
@@ -17,12 +23,7 @@ tags: ["sgemm", "avx512", "matmul", "openblas"]
 | 4 | AVX2 outer $6\times16$ with cache blocking | 103 |
 | 5 | AVX-512 outer $8\times48$ with cache blocking | 189 |
 
-
-This is a worklog on optimizing a single-precision generalized matrix-multiply (GEMM) kernel in C to land close to openBLAS performance. In the process of learning this for myself, I found the following sources really helpful. The goal of this worklog is to approach the design decisions of GEMM at the level of a chip ISA. 
-
-* [Algorithmica: Matrix Multiplication](https://en.algorithmica.org/hpc/algorithms/matmul/)
-* [Advanced Matrix Multiplication on Multi-Core Processors](https://salykova.github.io/gemm-cpu)
-* [George Hotz | Programming | can you multiply a matrix? (noob lesson)](https://youtu.be/VgSQ1GOC86s?si=G7VmTNu3uL5b0_8u)
+Code available [here](https://github.com/masterskepticista/sgemm.c).
 
 ## Introduction
 
