@@ -1,8 +1,8 @@
 ---
-title: "sgemm.c: Matching OpenBLAS SGEMM in pure C."
+title: "sgemm.c"
 date: 2026-08-12
 externalUrl: "https://github.com/MasterSkepticista/sgemm.c"
-summary: "Code accompanying [this](/posts/sgemm) blog post."
+summary: "Matching OpenBLAS SGEMM in pure C [(Post)](/posts/sgemm)."
 showReadingTime: false
 _build:
   render: "never"
