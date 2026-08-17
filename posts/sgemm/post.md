@@ -14,14 +14,14 @@ This post documents my attempt to optimize a single-precision general matrix mul
 * [Fast Multidimensional Matrix Multiplication on CPU from Scratch (Simon Boehm)](https://siboehm.com/articles/22/Fast-MMM-on-CPU)
 
 
-| Kernel | Implementation | GFLOP/s ($N$=1024) |
+| Kernel | Implementation | GFLOP/s ($N$=1000) |
 |--------|----------------|---------------------|
-| 0 | openBLAS reference | 190 |
-| 1 | Loop-reordered pointwise GEMM | 18 |
-| 2 | Cache-blocked pointwise GEMM | 46 |
-| 3 | AVX2 outer $6\times16$ | 53 |
-| 4 | AVX2 outer $6\times16$ with cache blocking | 103 |
-| 5 | AVX-512 outer $8\times48$ with cache blocking | 189 |
+| 0 | openBLAS reference | 140.7 |
+| 1 | Loop-reordered pointwise GEMM | 15.9 |
+| 2 | Cache-blocked pointwise GEMM | 33.3 |
+| 3 | AVX2 outer $6\times16$ | 75.7 |
+| 4 | AVX2 outer $6\times16$ with cache blocking | 84.3 |
+| 5 | AVX-512 outer $8\times48$ with cache blocking | 140.0 |
 
 Code available [here](https://github.com/masterskepticista/sgemm.c).
 
@@ -51,13 +51,13 @@ void gemm_naive(float *C,
 }
 ```
 
-It takes ~1.2 seconds (equivalently 1.7 GFLOP/s) for this kernel to multiply two 1000-size square matrices. This is absurdly slow for a CPU of this day and age. NumPy, in comparison, finishes this operation in 11ms, over 100x faster. Before we start optimizing this naive kernel, lets take stock of how to reason about the performance of a kernel.
+It takes ~1.2 seconds for this kernel to multiply two 1000-size square matrices. This is absurdly slow for a CPU of this day and age. NumPy, in comparison, finishes this operation in 11ms, over 100x faster. Before we start optimizing this naive kernel, lets take stock of how to reason about the performance of a kernel.
 
 ## Roofline Analysis
 
 Our testbench:
 
-* Intel Xeon [Sapphire Rapids] 8488C @ 3.2GHz
+* Intel Xeon [Sapphire Rapids] 8488C @ 2.4GHz
   * Cache L1d: 48 KB/core | L2: 2 MB/core | L3: 105 MB/shared
   * ISA support: AVX-2 | AVX-512
   * Microarchitecture: Golden Cove^[[Popping the Hood on Golden Cove, by Chester Lam](https://chipsandcheese.com/p/popping-the-hood-on-golden-cove)]
@@ -82,18 +82,18 @@ This means that as matrix sizes grow, GEMM operation becomes compute-bound. If w
 
 Intel Golden Cove core has two 512-bit wide FMA (fused multiply-add) units that can operate on 16 floats simultaneously (the focus of the first half of this article is on 256-bit vector operations which are shared with the 512-bit wide FMAs). Each core also has 32 of these 512-bit registers (named `zmm0-zmm31`). Likewise, 16 registers are available (named `ymm0-ymm15`) when using 256-bit wide FMAs. Registers sit on top of the memory hierarchy, with a single-clock tick access. FMA units also have a latency of 4 clock cycles, and a throughput of 2 IPC^[Instructions per clock. Here it means that both FMA units can dispatch in parallel ([ref](https://chipsandcheese.com/p/a-peek-at-sapphire-rapids)). Amortized, this gives a 1FMA/cycle of throughput if scheduled properly.]. For GEMMs we care only about streaming FMA throughput. The dispatch latency becomes irrelevant after first few FMAs. 
 
-Let us calculate the compute bandwidth when using 256-bit wide FMAs:
+Let us calculate the compute bandwidth when using 256-bit wide FMAs @2.9GHz^[Intel CPUs have a known frequency regression on pure AVX-512 workloads. These tests were run on an AWS instance without bare-metal access (and hence no clock pinning). Core frequencies were inferred using `perf stat -e cycles,task-clock` events. Loaded AVX-512 frequency: 2.4GHz, AVX2 frequency: 2.9GHz]:
 
 $$
-2 \text{ ops } \times 2 \text{ IPC } \times 8 \text{ floats/cycle } \times 3.2 \text{ GHz } = 102.4 \text{ GFLOP/s }
+2 \text{ ops } \times 2 \text{ IPC } \times 8 \text{ f/cycle } \times 2.9 \text{ GHz } = 92.8 \text{ GFLOP/s }
 $$
 
-All else same, 512-bit wide FMAs double the throughput by processing 16 floats/cycle, i.e., $204.8 \text{ GFLOP/s }$. This is what openBLAS can achieve at small cache-friendly matrix sizes, and will be our peak.
+512-bit wide FMAs double the throughput by processing 16 floats/cycle, but since our workbench does not support pinning CPU frequency, the results are based on a regressed clock of 2.4GHz i.e., $153.6 \text{ GFLOP/s }$ peak. This is what openBLAS achieves at small cache-friendly matrix sizes.
 
-The DRAM bandwidth on our setup is 10GB/s per thread from a simple `mbw` benchmark. Therefore, the ridge point $\gamma$ of this CPU across DRAM is:
+The DRAM bandwidth on our setup is 10GB/s per thread from a simple `mbw` benchmark. Therefore, the ridge point $\gamma$ of this CPU across DRAM ranges between:
 
 $$
-\gamma = \frac{\text{compute BW}}{\text{memory BW}} = 8 \text{ FLOPs/byte }
+\gamma = \frac{\text{compute BW}}{\text{memory BW}} = 9.28 - 15.36 \text{ FLOPs/byte }
 $$
 
 
@@ -173,9 +173,9 @@ Cache size is limited. As matrix dimensions grow, there is a possibility of olde
 
 ```c
 /** Cache-blocking across dimensions. */
-#define TILE_K 128
-#define TILE_N 2048
-#define TILE_M 1024
+#define TM 256
+#define TK 16
+#define TN 256
 
 void gemm_cache_blocking(float* __restrict C, 
                           const float* __restrict A, 
@@ -207,14 +207,14 @@ void gemm_cache_blocking(float* __restrict C,
 }
 ```
 
-With cache-blocking, performance becomes consistent across all matrix sizes. The disassembly of this kernel is same as before. This is expected because the same instructions now run on 'tiles' of matrices. The compiler generates instructions that hide the overhead of creating tiles behind the latency of compute. Neat! But why are we stuck way below the 102.4 GFLOP/s limit of 256-bit FMAs?
+With cache-blocking, performance becomes consistent across all matrix sizes. The disassembly of this kernel is same as before. This is expected because the same instructions now run on 'tiles' of matrices. The compiler generates instructions that hide the overhead of creating tiles behind the latency of compute. Neat! But why are we significantly below the 92.8 GFLOP/s limit of 256-bit FMAs?
 
 
 ![SGEMM Benchmark](https://github.com/MasterSkepticista/sgemm.c/blob/main/figures/spr/sgemm_gflops_0_2.png?raw=true)
 
 
 ### Performance ceiling
-Our kernel issues repeated FMAs and cache-blocking to sustain GFLOP/s. Recall from our roofline analysis, the performance ceiling is 102.4 GFLOP/s. To understand the reason behind saturation, we must review the disassembly:
+Our kernel issues repeated FMAs and cache-blocking to sustain GFLOP/s. To understand the reason behind saturation, we must review the disassembly:
 
 
 ![U-op count for the GEMM hot loop.](images/fma_load_stores.png)
@@ -235,9 +235,9 @@ $$
 \frac{2 \text{ FMA}}{3 \text{ loads } + 2 \text{ stores}} = \frac{2}{5} = 0.4
 $$
 
-Our performance ceiling with this kernel is $0.4 \times 102.4 = 41 \text{ GFLOP/s}$. This is nearly the ceiling we see in practice.
+Our performance ceiling with this kernel is $0.4 \times 92.8 = 37 \text{ GFLOP/s}$. This matches the ceiling we observe on the cache-blocked kernel.
 
-To exceed this ceiling, we need to renegotiate how much useful work can be done before the operands are discarded and results are written back.  
+To raise this ceiling, we need to renegotiate how much useful work can be done before the operands are discarded and results are written back.  
 
 ## Outer Product
 
@@ -248,7 +248,7 @@ $$
 
 Dot products are inefficient on hardware for the following reasons:
 
-* **Frequent Load/Stores for `C`**: Tiles of `C` are read and written repeatedly. This is clear from our disassembly analysis. The useful FMA work is capped at 43%.
+* **Frequent Load/Stores for `C`**: Tiles of `C` are read and written repeatedly. This is clear from our disassembly analysis. The useful FMA work is capped at 40%.
 * **Poor Register Utilization**: Registers are the fastest to access in the memory hierarchy. Vector intrinsics on modern cores like Golden Cove have 16 vector registers (32 in AVX-512). The dot-product loop uses about 6-7 registers for temporary accumulations.
 * **Arithmetic Intensity**: GEMM gets more compute intense with size. Our current implementation is load/store bound at large sizes. We need to amortize the cost of load/stores with more arithmetic work.
 
@@ -294,10 +294,7 @@ What this reformulation improves:
 ### Outer Product using Registers
 CPUs do not have an intrinsic for vector outer product, which means we need to compute one iteratively using vector FMAs.
 
-Consider loading $\text{MR}$ scalars from $A$ across the column, and $\text{NR}$ scalars from $B$ across the row^[You may (rightly) wonder that accesses across $A$ are not cache-friendly. In practice, we transpose a tile of `A` into a buffer, which gets passed into the outer-product microkernel. Transposed `A` is cache-friendly and reuses the same for `K` outer products. Check code for details.].
-
-
-We iteratively broadcast + FMA each of the scalars from $A$ to vectors of $B$, cumulatively storing the result in an $\text{MR} \times \text{NR}$ register tile of $C$.
+Consider loading $\text{MR}$ scalars from $A$ across the column, and $\text{NR}$ scalars from $B$ across the row. We iteratively broadcast + FMA each of the scalars from $A$ to vectors of $B$, cumulatively storing the result in an $\text{MR} \times \text{NR}$ register tile of $C$.
 
 
 ![Outer Product view of A, B, C.](images/outer_product_loop.png)
@@ -360,21 +357,21 @@ Only the $6 \times 16$ and $14 \times 8$ size micro-kernels are capable of satur
 
 By contrast, the $6 \times 16$ micro-kernel performs six scalar loads and two 256-bit vector loads, for a total of eight loads. This produces a much better balance between load throughput and FMA issue rate, allowing the kernel to approach core saturation. This explains the popular choice of $6 \times 16$ in various BLAS libraries using AVX intrinsics.
 
-
 ![Outer Product Kernel Benchmark](https://github.com/MasterSkepticista/sgemm.c/blob/main/figures/spr/sgemm_gflops_0_3.png?raw=true)
 
+On small matrices, this direct-path $6 \times 16$ GEMM saturates the FMA ceiling (86 GFLOP/s versus 92.8 GFLOP/s peak). Performance degrades as the matrices exceed cache boundary; which is where we need to bring back our previous performance-preserving optimization: cache-blocking.
 
 ### Cache Blocking (again)
 
-We tile across of the three dimensions of the matrices and sequentially compute GEMM on each one of them.
+We tile across of the three dimensions of the matrices and sequentially compute GEMM on each one of them. ^[You may (rightly) wonder that accesses across $A$ are not cache-friendly. Here, we transpose a tile of `A` into its buffer, while `B` gets contiguously copied to its own buffer. These buffers are passed into the outer-product microkernel. Transposed `A` is cache-friendly and reuses the same for `K` outer products. Check code for details.]
 
 ```c
 #define MR 6
 #define NR 16
 
+#define MC MR * 8
 #define KC 256
 #define NC 2048
-#define MC MR * 4
 
 void gemm_outer_product_cache_blocking(float * __restrict C, 
                                       const float * __restrict A, 
@@ -407,7 +404,7 @@ void gemm_outer_product_cache_blocking(float * __restrict C,
 ```
 
 ### Micro-optimizations
-Cache blocking isn't enough. To match openBLAS, we also apply the following (refer code for more details):
+Cache blocking is not enough. To match openBLAS, we also apply the following (refer code for more details) to counter the packing overhead:
 
 * Prefetching `C` to cache, in-flight during FMAs:
 
@@ -427,13 +424,13 @@ accumulate_6x16(c, blockA, blockB, k);
 
 ![Outer Product with Cache Blocking](https://github.com/MasterSkepticista/sgemm.c/blob/main/figures/spr/sgemm_gflops_0_4.png?raw=true)
 
-With these changes, we approach the machine limit of 256-bit wide FMAs!
+With these changes, we approach the machine limit of 256-bit wide FMAs across all matrix sizes!
 
 ## Wider Registers
 
-We rewrite the same outer-product kernel with 512-bit intrinsics, and compute ideal values of `MR` and `NR` that saturate the FLOPs/byte. In my case, `MR=8`, `NR=48` matches openBLAS on large matrix sizes^[OpenBLAS achieves 200+ GFLOP/s throughput on small matrices (close to machine limit) because it skips the packing and issues direct GEMM on in-cache arrays. I skip this to keep the code readable.]. Same micro-optimizations carry into this kernel as well.
+We rewrite the same outer-product kernel with 512-bit intrinsics, and compute ideal values of `MR` and `NR` that saturate the FLOPs/byte. In my case, `MR=8`, `NR=48` matches openBLAS on large matrix sizes^[OpenBLAS achieves 150+ GFLOP/s throughput on small matrices (close to machine limit) because it skips the packing and issues direct GEMM on in-cache arrays (like we did with direct $6 \times 16$ GEMM earlier). I skip this to keep the code readable.]. Same micro-optimizations carry into this kernel as well.
 We started at 1.7 GFLOP/s with the same underlying computation; and rearranging it around the hardware gets us within striking distance of openBLAS.
 
 ![Outer Product with Cache Blocking](https://github.com/MasterSkepticista/sgemm.c/blob/main/figures/spr/sgemm_gflops_0_5.png?raw=true)
 
-This is the GEMM playbook: reuse data at every level of the memory hierarchy, keep the hot tile in registers, and make the FMA units the bottleneck. This is perhaps the story behind all high-performance kernels, on CPUs or XPUs: keep data close, reuse aggressively, and give the compute units enough independent work to stay busy.
+This is the GEMM playbook: reuse data at every level of the memory hierarchy, keep the hot tile in registers, and make the FMA units the bottleneck. This is perhaps the story behind all high-performance kernels, on CPUs or xPUs: keep data close, reuse aggressively, and give the compute units enough independent work to stay busy.
