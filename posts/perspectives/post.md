@@ -2,7 +2,7 @@
 title: Borrowing Sense of Proportions
 date: 2026-09-16
 description: Humor lowers the half-life of an ache.
-draft: true
+draft: false
 tags: ["philosophy", "misc"]
 ---
 
