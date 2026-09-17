@@ -10,7 +10,7 @@ tags: ["philosophy", "misc"]
   <img src="images/thumb.gif" alt="" width=400px>
 </figure>
 
-We all have that one person in our lives who has a habit of delivering useful advice as punchlines. The strange part is that we _usually_ know the advice. Don’t catastrophize. Don’t confuse uncertainty with danger. What do you have to lose? Don’t pretend you can control what you cannot. None of this is intellectually novel. Yet this person can say some version of it in one sharp, funny sentence and do what hours of our own reasoning cannot: lower the half-life of an ache. The problem is still there, but it decays faster.
+We all have that one person in our lives who has a habit of delivering useful advice as punchlines. The strange part is that we _usually_ know the advice. Don’t catastrophize. Don’t confuse uncertainty with danger. What do you have to lose? Don’t pretend you can control what you cannot. None of this is groundbreaking. Yet this person can say some version of it in one sharp, funny sentence and do what hours of our own reasoning cannot: lower the half-life of an ache. The problem is still there, but it decays faster.
 
 > Problems that felt enormous suddenly look badly scaled.
 
