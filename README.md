@@ -9,6 +9,7 @@ A simple, elegant (vibecoded) static blog generator themed on [Tufte CSS](https:
 - **Code syntax highlighting** with Pygments (Rouge-like HTML/CSS output)
 - **Sidenotes** with `^[note text]` syntax
 - **Images & assets** - organize media in post folders
+- **RSS 2.0 feed** at `/feed.xml`, with browser/feed-reader autodiscovery
 - **Static output** - ready for GitHub Pages
 
 ## Setup

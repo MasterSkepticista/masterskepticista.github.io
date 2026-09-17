@@ -10,9 +10,11 @@ import json
 import time
 import threading
 from pathlib import Path
-from datetime import datetime
+from datetime import date, datetime, timezone
+from email.utils import format_datetime
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlsplit, urlunsplit
+import xml.etree.ElementTree as ET
 import markdown
 import frontmatter
 import shutil
@@ -162,6 +164,7 @@ class BlogGenerator:
             "resume_url": self.config.get("resume_url", ""),
             "asset_prefix": asset_prefix,
             "site_links": self.build_site_links(),
+            "feed_url": self.build_url("feed.xml"),
         }
 
     @staticmethod
@@ -370,6 +373,25 @@ class BlogGenerator:
 
         return date_formatted, date_iso
 
+    @staticmethod
+    def format_rss_date(raw_date) -> str:
+        if not raw_date:
+            return ''
+
+        try:
+            if isinstance(raw_date, datetime):
+                date_obj = raw_date
+            elif isinstance(raw_date, date):
+                date_obj = datetime.combine(raw_date, datetime.min.time())
+            else:
+                date_obj = datetime.fromisoformat(str(raw_date).replace('Z', '+00:00'))
+
+            if date_obj.tzinfo is None:
+                date_obj = date_obj.replace(tzinfo=timezone.utc)
+            return format_datetime(date_obj.astimezone(timezone.utc), usegmt=True)
+        except (TypeError, ValueError):
+            return ''
+
     def render_summary_markdown(self, summary: str) -> str:
         if not summary:
             return ''
@@ -452,6 +474,8 @@ class BlogGenerator:
             'slug': post_path.name,
             'thumbnail_url': self.find_post_thumbnail(post_path, post_path.name),
             'external_url': post.metadata.get('externalUrl', ''),
+            'tags': post.metadata.get('tags', []),
+            'draft': post.metadata.get('draft', False),
         }
         
         # Parse date
@@ -553,6 +577,66 @@ class BlogGenerator:
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html)
 
+    def generate_feed(self, posts: list):
+        """Generate an RSS 2.0 feed for published posts."""
+        print("  Generating RSS feed")
+
+        site_url = self.config.get('site_url', '').rstrip('/')
+        feed_url = f"{site_url}/feed.xml" if site_url else self.build_url('feed.xml')
+        home_url = f"{site_url}/" if site_url else self.build_url()
+        published_posts = sorted(
+            (post for post in posts if not post.get('draft', False)),
+            key=lambda post: post.get('date_iso', ''),
+            reverse=True,
+        )
+
+        ET.register_namespace('atom', 'http://www.w3.org/2005/Atom')
+        rss = ET.Element('rss', {'version': '2.0'})
+        channel = ET.SubElement(rss, 'channel')
+        ET.SubElement(channel, 'title').text = self.config.get('site_name', 'Blog')
+        ET.SubElement(channel, 'link').text = home_url
+        ET.SubElement(channel, 'description').text = self.config.get(
+            'description',
+            f"Posts from {self.config.get('site_name', 'Blog')}",
+        )
+        ET.SubElement(
+            channel,
+            '{http://www.w3.org/2005/Atom}link',
+            {'href': feed_url, 'rel': 'self', 'type': 'application/rss+xml'},
+        )
+
+        if published_posts:
+            latest_date = self.format_rss_date(published_posts[0].get('date'))
+            if latest_date:
+                ET.SubElement(channel, 'lastBuildDate').text = latest_date
+
+        for post in published_posts:
+            post_url = post.get('canonical_url') or (
+                f"{site_url}/posts/{post['slug']}/"
+                if site_url
+                else self.build_url(f"posts/{post['slug']}/")
+            )
+            item = ET.SubElement(channel, 'item')
+            ET.SubElement(item, 'title').text = str(post.get('title', 'Untitled'))
+            ET.SubElement(item, 'link').text = post_url
+            ET.SubElement(item, 'guid', {'isPermaLink': 'true'}).text = post_url
+
+            pub_date = self.format_rss_date(post.get('date'))
+            if pub_date:
+                ET.SubElement(item, 'pubDate').text = pub_date
+            if post.get('description'):
+                ET.SubElement(item, 'description').text = str(post['description'])
+            for tag in post.get('tags', []):
+                ET.SubElement(item, 'category').text = str(tag)
+
+        ET.indent(rss, space='  ')
+        tree = ET.ElementTree(rss)
+        tree.write(
+            self.output_dir / 'feed.xml',
+            encoding='utf-8',
+            xml_declaration=True,
+        )
+
     def generate_collection_page(self, section: dict):
         """Generate dedicated page for one external collection"""
         page_slug = section.get('slug', '').strip()
@@ -617,6 +701,7 @@ class BlogGenerator:
 
         # Generate index
         self.generate_index(posts)
+        self.generate_feed(posts)
         
         print(f"✓ Generated {len(posts)} posts")
         print(f"✓ Output: {self.output_dir.resolve()}")
