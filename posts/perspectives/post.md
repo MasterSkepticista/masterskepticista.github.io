@@ -18,9 +18,9 @@ Anxiety has many attributes, but rumination is the common one. Rumination feeds 
 
 > It is still messed up, but humor changes what you thought was the size of your problem.
 
-The denominator is likely _trust_. We outsource our sanity to people whose judgment we trust. If someone whose judgment you trust can look at the same situation and remain relaxed enough to joke about it, the discrepancy becomes a sign that you may need to reconsider your perceived threat level.
+The denominator is likely _trust_. We outsource our sanity to people whose judgment we trust. If someone whose judgment we trust can look at the same situation and remain relaxed enough to joke about it, the discrepancy becomes a sign that we may need to reconsider your perceived threat level.
 
-This may be why most advice is easy to understand but hard to use: the principle is known, but the texture of the problem in your mind is just so vivid that you can't. A nice punchline replaces that texture with one that is easier to recall.
+This may be why most advice is easy to understand but hard to use: the principle is known, but the texture of the problem in our mind is just so vivid that we can't. A nice punchline replaces that texture with one that is easier to recall.
 
 So I have started asking a different question after many of such conversations: not “What advice did he give me?” but “What assumption did he puncture?” Maybe I was treating uncertainty as danger. Maybe I acted as though one outcome determined my future. Perhaps I am extracting certainty when there is none.
 
