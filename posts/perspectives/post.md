@@ -3,25 +3,29 @@ title: Borrowing Sense of Proportions
 date: 2026-09-16
 description: Humor lowers the half-life of an ache.
 draft: false
-tags: ["philosophy", "misc"]
+tags: ["misc"]
 ---
 
 <figure>
   <img src="images/thumb.gif" alt="" width=400px>
 </figure>
 
-We all have that one person in our lives who has a habit of delivering useful advice as punchlines. And we _usually_ know this advice. "Don’t overthink", "Don’t worry", "What do you have to lose?", "Don’t pretend to control what you cannot", "Take life as it comes". None of this is groundbreaking advice. Yet this person will casually deliver a variant of this and do what hours of our own reasoning cannot: it will lower the half-life of our ache.
+We all have that one person in our lives who has a habit of delivering useful advice as punchlines. And we _usually_ know this advice. "Don’t overthink", "Don’t worry", "What do you have to lose?", "Don’t pretend to control what you cannot", "Take life as it comes". None of this is groundbreaking advice, yet we feel better equipped after a conversation where the same message gets delivered by them with humor or comedic absurdity. At its root, it is because we trust their judgment.
 
-> Problems that felt enormous look badly scaled.
+Rumination makes uncertainty feel larger than it is. A small problem can accumulate imagined motives, future consequences, alternate outcomes, and questions that have no answer. After enough thought, the version in your head can be much larger than the situation that started it.
 
-Anxiety has many attributes, but rumination is the common one. Rumination feeds on uncertainty and expands it into a complete world with motives, implications, possible futures, counterfactuals, and sequels that would never play out. It distorts the proportion of our problems. And a good joke from this person interrupts that expansion. It places our complicated version of the problem next to a simpler, absurd version, and the contrast exposes how much extra weight our mind added.
+Humor can interrupt that process. A joke strips away some of the detail we added and gives us another way to look at the situation. 
 
-> It is still messed up, but humor changes what you thought was the size of your problem.
+> The problem remains, but its scale changes.
 
-The denominator is likely _trust_. We outsource our sanity to people whose judgment we trust. If someone whose judgment we trust can look at the same situation and remain relaxed enough to joke about it, the discrepancy becomes a sign that we may need to reconsider your perceived threat level.
+Trust matters here. When someone whose judgment you respect understands the situation and can still joke about it, their reaction gives you another reference point. You may have reasons to worry, but their response suggests that your estimate of the threat deserves another look.
 
-This may be why most advice is easy to understand but hard to use: the principle is known, but the texture of the problem in our mind is just so vivid that we can't. A nice punchline replaces that texture with one that is easier to recall.
+This also explains why familiar advice can feel useless when we give it to ourselves. Knowing a principle does not mean we can apply it while inside a problem. The details feel immediate. A remark from someone else can cut through them because it comes from outside that frame.
 
-So I have started asking a different question after many of such conversations: not “What advice did he give me?” but “What assumption did he puncture?” Maybe I was treating uncertainty as danger. Maybe I acted as though one outcome determined my future. Perhaps I am extracting certainty when there is none.
+After conversations like these, I have started paying less attention to the advice itself. I try to identify the assumption behind my reaction.
 
-Learning someone's sense of proportions is a transferable skill. The goal is not to eliminate an ache at will. It is to lower its half-life until eventually you can see the problem in its right shape without having to borrow someone else’s sense of it.
+Was I treating uncertainty as evidence that something would go wrong? Was I giving one possible outcome too much importance? Was I trying to reach a level of certainty the situation could not provide?
+
+Those questions are useful because they can be reused. Over time, you can learn how another person judges scale: what deserves attention, what can remain an open question, and what your mind has made larger through repetition.
+
+The point is not to stop worrying on command. It is to get better at judging the size of a problem while you are inside it. Eventually, you may need to borrow someone else’s perspective less often.
