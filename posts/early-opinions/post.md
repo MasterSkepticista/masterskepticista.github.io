@@ -9,48 +9,24 @@ tags: ["misc"]
   <img src="images/thumb.png" alt="" width=400px>
 </figure>
 
+It is easy to decide that we do not like something before spending much time with it. A place, a subject, a kind of work, a person. Sometimes the judgment is right. Other times, we have simply had too little experience to know.
 
-Most "preferences" we defend aren't real preferences. They're conclusions we jumped to before we actually tried something. This creates a few traps:
+This happens with small things too. Someone says they are not a morning person, do not like a certain kind of food, or would never live somewhere. After saying it enough times, the opinion starts to feel settled. There is little reason to test it again.
 
-* **Unfamiliarity feels like dislike.** We assume we won't enjoy something just because we haven't experienced it.
-* **Speed masquerades as judgment.** Quick opinions feel like wisdom, but they're just shortcuts.
-* **Stories replace experience.** We build narratives ("I'm not a X person") instead of actually testing things out.
+The problem is that an early opinion can affect what happens next. If I already think I will dislike something, I am less likely to try it. If I do try it, I may give it less time. The opinion gets fewer chances to be wrong.
 
-Why do we fall for this?
+There is also some pressure to have an answer. In a conversation, saying “I don’t know enough about this” can feel less satisfying than having a position. So we often work with whatever information is available and fill in the rest.
 
-## Efficiency
+Most of the time, getting a little more information is not very difficult. Trying something once, reading about it, or talking to someone who sees it differently can change the picture quite quickly. Even when it does not change the conclusion, there is now something behind it.
 
-Opinions feel efficient because they short uncertainty. They reduce cognitive load and create an illusion of clarity.
+I have started thinking about this when I catch myself saying things like “I’m not into that” or “that isn’t for me.” How much of that comes from experience? How much comes from a few examples, or from an impression I formed a long time ago?
 
-A distinction has to be made about opinions that are 'refined' through experience: that is judgment. Judgment is expensive. It is earned through contact with reality: trial, error, and revision.
+There are plenty of opinions that do not deserve this much attention. But for choices that affect what I try, where I go, what I work on, or who I spend time with, it seems useful to check.
 
-Opinions let us move fast.
+Perhaps the distinction worth keeping is between opinion and judgment. Judgment has been paid for. It has survived some contact with reality.
 
-## Lost futures
+So maybe opinions are best treated as a kind of debt: easy to acquire, but worth carrying only if we eventually pay for them with curiosity and experience.
 
-The cost of forming opinions before exposure, is in missed optionality.
-
-- You sample less from reality, which means you get fewer chances to discover fit, leverage, or upside.
-- You miss second-order benefits from paths you never entered.
-- You spend energy defending identities you did not earn.
-
-We do not pause-and-reflect because opinion is socially cheaper than exploration.
-
-## Imagination
-
-Social settings reward immediacy. Silence reads as ignorance, and hesitation reads as weakness. So we opine early. We overestimate the cost it takes to actually gather reasonable amount of information or exposure to a thing. Some may find themselves filling those experience gaps with identity narratives: “I don’t do X”, “I prefer Y”. 
-
-In practice, it takes far less effort to learn 'just enough' about what is being asked of, and then build an opinion on it, or, to empathize with contrasting viewpoints of your peers about something.
-
-We overestimate the cost of exposure, and underestimate the cost of guessing.
-
-
-## Experience, instead.
-
-Many problems feel complex only from a distance. Once we engage with reality, simple constraints and real trade-offs are revealed. None of which are visible from imagination alone. Exposure builds experience; and experience invalidates shaky beliefs.
-
-The takeaway (I think) is to have opinions, but treat them as debt. If you haven’t paid for one with exposure, curiosity, or effort; don’t carry it forward.
-
-Default to gathering experience. Let judgment come later.
+Until then, sample more from reality.
 
 <blockquote class="twitter-tweet"><a href="https://twitter.com/nntaleb/status/1789709702097481773"></a></blockquote>
