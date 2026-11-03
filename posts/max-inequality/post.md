@@ -42,13 +42,11 @@ We will use this midpoint form to prove our inequality. Its inputs will be funct
 
 ## Operator $\max_x$ is convex
 
-We don't know that yet. Let's prove this first. Let $f$ and $g$ be real-valued functions on the same nonempty set $\mathcal{X}$. We define a functional $M$ that takes a function $h$ and returns its maximum value over $\mathcal{X}$:
+We don't know that yet. So we will prove this first. Let $f$ and $g$ be real-valued functions on the same nonempty set $\mathcal{X}$. We define a functional^[A functional is a mapping from a space of functions to the real numbers.] $M$:
 
 $$
 M(h) := \max_{x\in \mathcal{X}} h(x).
 $$
-
-The functions $f$ and $g$ may be nonconvex. We only need $M$ to be convex.
 
 By the definition of $M$, for every $x\in\mathcal{X}$,
 $$
@@ -80,13 +78,13 @@ M(\lambda f+(1-\lambda)g)
 \end{aligned}
 $$
 
-This is the convexity condition for $M$. The functional is also positively homogeneous.^[For $\alpha\geq0$, multiplication by $\alpha$ preserves order. A point that maximizes $h$ also maximizes $\alpha h$. Thus, $M(\alpha h)=\alpha M(h)$.]
+This is the convexity condition for $M$.
 
 ## Proof
 
 Now we define $u=2(f-g)$ and $w=2g$.^[The convex object is $M$. Its input functions need no convexity condition. Thus, these choices of $u$ and $w$ are valid when the required maxima exist and are finite.] 
 
-Then $f=\frac{(u+w)}{2}$. Applying the midpoint form of Jensen's inequality:
+Then $f=\frac{(u+w)}{2}$. Applying the midpoint form of Jensen's inequality and the positive homogeneity^[For $\alpha\geq0$, multiplication by $\alpha$ preserves order. A point that maximizes $h$ also maximizes $\alpha h$. Thus, $M(\alpha h)=\alpha M(h)$.] of $M$ gives:
 
 $$
 \begin{aligned}
