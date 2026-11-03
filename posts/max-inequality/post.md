@@ -18,10 +18,10 @@ There are many ways to prove this inequality, this post uses a convexity argumen
 
 ## Jensen's Inequality
 
-The commonly known form of Jensen's inequality is its expectation form. If $f$ is convex and $Z$ is a random variable with finite expectations, then
+The commonly known form of Jensen's inequality is its expectation form. If $\psi$ is a convex function and $Z$ is a random variable with finite expectations, then
 
 $$
-f(\mathbb{E}[Z])\leq \mathbb{E}[f(Z)].
+\psi(\mathbb{E}[Z])\leq \mathbb{E}[\psi(Z)].
 $$
 
 Geometrically, the graph of a convex function lies below the line between any two points on the graph.^[This two-point interpolation is the definition of convexity. It is also a special case of Jensen's inequality. Jensen extends the relation to weighted averages of more points and to expectations over general random variables, when those expectations exist.]
@@ -34,8 +34,8 @@ Geometrically, the graph of a convex function lies below the line between any tw
 We can derive a midpoint form from this by setting $\theta = \frac{1}{2}$. Let $Z$ take the values $a$ and $b$ with equal probability. Then
 
 $$
-f\left(\frac{a+b}{2}\right)
-\leq \frac{f(a)+f(b)}{2}.
+\psi\left(\frac{a+b}{2}\right)
+\leq \frac{\psi(a)+\psi(b)}{2}.
 $$
 
 We will use this midpoint form to prove our inequality. Its inputs will be functions, and the convex operation will take their maximum values.
@@ -78,11 +78,11 @@ M(\lambda f+(1-\lambda)g)
 \end{aligned}
 $$
 
-This is the convexity condition for $M$.
+This shows that $M$ is convex. We can now apply the midpoint form of Jensen's inequality to $M$.
 
 ## Proof
 
-Now we define $u=2(f-g)$ and $w=2g$.^[The convex object is $M$. Its input functions need no convexity condition. Thus, these choices of $u$ and $w$ are valid when the required maxima exist and are finite.] 
+Define $u=2(f-g)$ and $w=2g$.^[The convex object is $M$. Its input functions need no convexity condition. Thus, these choices of $u$ and $w$ are valid when the required maxima exist and are finite.] 
 
 Then $f=\frac{(u+w)}{2}$. Applying the midpoint form of Jensen's inequality and the positive homogeneity^[For $\alpha\geq0$, multiplication by $\alpha$ preserves order. A point that maximizes $h$ also maximizes $\alpha h$. Thus, $M(\alpha h)=\alpha M(h)$.] of $M$ gives:
 
